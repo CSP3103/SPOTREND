@@ -1,0 +1,16 @@
+# .gitignore
+
+# Entornos virtuales
+venv/
+__pycache__/
+
+# Archivos de la base de datos (si usaras SQLite, aunque no es el caso)
+*.db
+*.sqlite
+
+# Claves sensibles y logs
+.env
+*.log
+
+# PyCharm y otros IDEs
+.idea/
