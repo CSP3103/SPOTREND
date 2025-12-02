@@ -1,9 +1,10 @@
-
 from fastapi import FastAPI
 from database import create_db_and_tables
-import models # Se importa para que SQLModel sepa de los modelos
+import models
 from routers.benchmark import router as benchmark_router
+from routers.analisis import router as analisis_router
 from routers.cancion import router as cancion_router
+
 
 # Nombre del Proyecto Actualizado
 app = FastAPI(title="Spotrend API - Comparador de Tendencias")
@@ -17,6 +18,7 @@ def on_startup():
 # Incluir Routers
 app.include_router(benchmark_router)
 app.include_router(cancion_router)
+app.include_router(analisis_router)
 
 # Ruta de prueba
 @app.get("/")
