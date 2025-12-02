@@ -6,7 +6,7 @@ from routers.spotify_auth import get_spotify_token_dependency
 router = APIRouter(prefix="/spotify/data", tags=["Spotify Data"])
 
 # !!! URL REAL DE SPOTIFY PARA LA API DE DATOS (v1) !!!
-API_URL = "http://googleusercontent.com/api.spotify.com/v1"
+API_URL = "https://api.spotify.com/v1"
 
 
 # 1. Endpoint para buscar canciones
