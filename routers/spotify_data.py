@@ -54,7 +54,7 @@ def get_audio_features(
         spotify_id: str,
         token: str = Depends(get_spotify_token_dependency)
 ):
-    """Obtiene las métricas de audio necesarias para el análisis (Tempo, Energy, Danceability)."""
+    """Obtiene las métricas de audio necesarias para el análisis(Tempo, Energy, Danceability)."""
     headers = {"Authorization": f"Bearer {token}"}
 
     try:
