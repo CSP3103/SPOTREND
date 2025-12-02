@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 import requests
 from typing import Dict, Any, List
-from routers.spotify_auth import get_spotify_token_dependency  # Importa la dependencia de token
+from routers.spotify_auth import get_spotify_token_dependency
 
 router = APIRouter(prefix="/spotify/data", tags=["Spotify Data"])
 
-# !!! IMPORTANTE !!!
-# REEMPLAZA ESTA URL MARCADOR CON LA URL REAL DE SPOTIFY PARA LA API DE DATOS (v1)
-# La URL real es el API base v1 de Spotify
-API_URL = "https://api.spotify.com/v1"
+# !!! URL REAL DE SPOTIFY PARA LA API DE DATOS (v1) !!!
+API_URL = "http://googleusercontent.com/api.spotify.com/v1"
 
 
 # 1. Endpoint para buscar canciones
@@ -33,7 +31,6 @@ def search_track(
 
         data = response.json()
 
-        # Filtramos los datos para devolver solo lo esencial
         tracks = []
         for item in data.get('tracks', {}).get('items', []):
             tracks.append({
@@ -41,12 +38,11 @@ def search_track(
                 "nombre": item['name'],
                 "artista": item['artists'][0]['name'],
                 "imagen_url": item['album']['images'][0]['url'] if item['album']['images'] else None,
-                "preview_url": item.get('preview_url')  # Útil para el frontend
+                "preview_url": item.get('preview_url')
             })
         return tracks
 
     except requests.exceptions.HTTPError as e:
-        # Esto captura errores de token inválido, 404, etc.
         raise HTTPException(status_code=e.response.status_code, detail=f"Error en Spotify API: {e}")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error interno: {e}")
@@ -67,7 +63,6 @@ def get_audio_features(
 
         features = response.json()
 
-        # Devolvemos todas las características que podrían usarse en el análisis
         return {
             "spotify_id": features.get("id"),
             "tempo": features.get("tempo"),
@@ -75,7 +70,6 @@ def get_audio_features(
             "danceability": features.get("danceability"),
             "valence": features.get("valence"),
             "acousticness": features.get("acousticness"),
-            # etc.
         }
 
     except requests.exceptions.HTTPError as e:

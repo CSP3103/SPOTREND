@@ -40,3 +40,9 @@ class AnalisisResultado(SQLModel, table=True):
 
     cancion: Cancion = Relationship(back_populates="analisis")
     benchmark: Benchmark = Relationship(back_populates="analisis")
+
+class Configuracion(SQLModel, table=True):
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    clave: str = Field(index=True, unique=True)
+    valor: str
