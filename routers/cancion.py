@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, s
 from sqlmodel import Session, select
 from database import get_session
 from models import Cancion
-from supabase import upload_to_bucket
+from supabase_service import upload_to_bucket
 from typing import Optional, List
 import uuid
 
