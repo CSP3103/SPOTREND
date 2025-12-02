@@ -4,6 +4,7 @@ import models
 from routers.benchmark import router as benchmark_router
 from routers.analisis import router as analisis_router
 from routers.cancion import router as cancion_router
+from routers.spotify_auth import router as spotify_auth_router
 
 
 # Nombre del Proyecto Actualizado
@@ -19,6 +20,7 @@ def on_startup():
 app.include_router(benchmark_router)
 app.include_router(cancion_router)
 app.include_router(analisis_router)
+app.include_router(spotify_auth_router)
 
 # Ruta de prueba
 @app.get("/")
