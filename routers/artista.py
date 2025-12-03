@@ -4,120 +4,169 @@ from datetime import datetime
 from database import get_session
 from models import Artista
 from supabase_service import upload_to_bucket
+import logging
 
 router = APIRouter(prefix="/artistas", tags=["Artistas"])
+logger = logging.getLogger(__name__)
 
 
-# CREATE
 @router.post("/", response_model=Artista)
 async def crear_artista(
         nombre: str = Form(...),
         pais: str = Form(None),
         genero_principal: str = Form(None),
         popularidad: int = Form(50),
-        imagen: UploadFile | None = None,
+        imagen: UploadFile = None,
         session: Session = Depends(get_session)
 ):
-    """Crea un artista manual."""
-    url = None
-    if imagen:
-        url = await upload_to_bucket(imagen)
+    try:
+        if popularidad < 0 or popularidad > 100:
+            raise HTTPException(400, "Popularidad debe estar entre 0 y 100")
 
-    nuevo = Artista(
-        nombre=nombre,
-        pais=pais,
-        genero_principal=genero_principal,
-        popularidad=popularidad,
-        imagen_url=url
-    )
+        url = None
+        if imagen:
+            if not imagen.content_type.startswith('image/'):
+                raise HTTPException(400, "Archivo debe ser una imagen")
+            url = await upload_to_bucket(imagen)
 
-    session.add(nuevo)
-    session.commit()
-    session.refresh(nuevo)
-    return nuevo
+        artista = Artista(
+            nombre=nombre,
+            pais=pais,
+            genero_principal=genero_principal,
+            popularidad=popularidad,
+            imagen_url=url
+        )
+
+        session.add(artista)
+        session.commit()
+        session.refresh(artista)
+        logger.info(f"Artista creado: {artista.id}")
+        return artista
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Error creando artista: {e}")
+        raise HTTPException(500, "Error interno del servidor")
 
 
-# READ ALL
 @router.get("/", response_model=list[Artista])
 def listar_artistas(session: Session = Depends(get_session)):
-    """Lista artistas activos."""
-    statement = select(Artista).where(Artista.deleted_at == None)
-    return session.exec(statement).all()
+    try:
+        artistas = session.exec(
+            select(Artista).where(Artista.deleted_at == None)
+        ).all()
+        return artistas
+    except Exception as e:
+        logger.error(f"Error listando artistas: {e}")
+        return []
 
 
-# READ ONE
 @router.get("/{id}", response_model=Artista)
 def obtener_artista(id: int, session: Session = Depends(get_session)):
-    """Obtiene artista por ID."""
-    artista = session.get(Artista, id)
-    if not artista or artista.deleted_at:
-        raise HTTPException(status_code=404, detail="Artista no encontrado")
-    return artista
+    try:
+        artista = session.get(Artista, id)
+        if not artista or artista.deleted_at:
+            raise HTTPException(404, "Artista no encontrado")
+        return artista
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error obteniendo artista {id}: {e}")
+        raise HTTPException(500, "Error interno del servidor")
 
 
-# UPDATE
 @router.put("/{id}", response_model=Artista)
 async def actualizar_artista(
         id: int,
-        nombre: str = Form(...),
+        nombre: str = Form(None),
         pais: str = Form(None),
         genero_principal: str = Form(None),
-        imagen: UploadFile | None = None,
+        popularidad: int = Form(None),
+        imagen: UploadFile = None,
         session: Session = Depends(get_session)
 ):
-    """Actualiza artista."""
-    artista = session.get(Artista, id)
-    if not artista or artista.deleted_at:
-        raise HTTPException(status_code=404, detail="Artista no encontrado")
+    try:
+        artista = session.get(Artista, id)
+        if not artista or artista.deleted_at:
+            raise HTTPException(404, "Artista no encontrado")
 
-    artista.nombre = nombre
-    artista.pais = pais
-    artista.genero_principal = genero_principal
+        if popularidad is not None and (popularidad < 0 or popularidad > 100):
+            raise HTTPException(400, "Popularidad debe estar entre 0 y 100")
 
-    if imagen:
-        artista.imagen_url = await upload_to_bucket(imagen)
+        if nombre is not None:
+            artista.nombre = nombre
+        if pais is not None:
+            artista.pais = pais
+        if genero_principal is not None:
+            artista.genero_principal = genero_principal
+        if popularidad is not None:
+            artista.popularidad = popularidad
 
-    session.add(artista)
-    session.commit()
-    session.refresh(artista)
-    return artista
+        if imagen:
+            if not imagen.content_type.startswith('image/'):
+                raise HTTPException(400, "Archivo debe ser una imagen")
+            url = await upload_to_bucket(imagen)
+            artista.imagen_url = url
+
+        session.add(artista)
+        session.commit()
+        session.refresh(artista)
+        logger.info(f"Artista actualizado: {id}")
+        return artista
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Error actualizando artista {id}: {e}")
+        raise HTTPException(500, "Error interno del servidor")
 
 
-# DELETE (soft)
 @router.delete("/{id}")
 def eliminar_artista(id: int, session: Session = Depends(get_session)):
-    """Elimina lógicamente artista."""
-    artista = session.get(Artista, id)
-    if not artista:
-        raise HTTPException(status_code=404, detail="Artista no encontrado")
+    try:
+        artista = session.get(Artista, id)
+        if not artista:
+            raise HTTPException(404, "Artista no encontrado")
 
-    artista.deleted_at = datetime.utcnow()
-    session.add(artista)
-    session.commit()
-    return {"message": "Artista eliminado lógicamente"}
+        if artista.deleted_at:
+            return {"message": "Artista ya estaba eliminado", "ok": True}
+
+        artista.deleted_at = datetime.utcnow()
+        session.add(artista)
+        session.commit()
+        logger.info(f"Artista eliminado (soft): {id}")
+        return {"message": "Artista eliminado exitosamente", "ok": True}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Error eliminando artista {id}: {e}")
+        raise HTTPException(500, "Error interno del servidor")
 
 
-# LIST DELETED
-@router.get("/eliminados/", response_model=list[Artista])
-def listar_artistas_eliminados(session: Session = Depends(get_session)):
-    """Lista artistas eliminados."""
-    statement = select(Artista).where(Artista.deleted_at != None)
-    return session.exec(statement).all()
-
-
-# RESTORE
-@router.post("/restaurar/{id}", response_model=Artista)
+@router.get("/{id}/restaurar")
 def restaurar_artista(id: int, session: Session = Depends(get_session)):
-    """Restaura artista eliminado."""
-    artista = session.get(Artista, id)
-    if not artista:
-        raise HTTPException(status_code=404, detail="Artista no encontrado")
+    try:
+        artista = session.get(Artista, id)
+        if not artista:
+            raise HTTPException(404, "Artista no encontrado")
 
-    if not artista.deleted_at:
-        raise HTTPException(status_code=400, detail="Artista no está eliminado")
+        if not artista.deleted_at:
+            return {"message": "Artista no estaba eliminado", "ok": True}
 
-    artista.deleted_at = None
-    session.add(artista)
-    session.commit()
-    session.refresh(artista)
-    return artista
+        artista.deleted_at = None
+        session.add(artista)
+        session.commit()
+        logger.info(f"Artista restaurado: {id}")
+        return {"message": "Artista restaurado exitosamente", "ok": True}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Error restaurando artista {id}: {e}")
+        raise HTTPException(500, "Error interno del servidor")
