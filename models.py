@@ -1,100 +1,63 @@
-import uuid
-from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
+from typing import Optional, List
 from datetime import datetime
+import uuid
 
 
-# ====================================================
-#   MODELO ARTISTA (manual, creado por el usuario)
-# ====================================================
-class Artista(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    nombre: str = Field(index=True)
-    pais: Optional[str] = Field(default=None)
-    genero_principal: Optional[str] = Field(default=None)
-    popularidad: Optional[int] = Field(default=50)
-    imagen_url: Optional[str] = Field(default=None)
-    creado_en: datetime = Field(default_factory=datetime.utcnow)
-    deleted_at: Optional[datetime] = Field(default=None)
-
-    # Relación 1:N → Canciones
-    canciones: List["Cancion"] = Relationship(back_populates="artista_ref")
-
-
-# ====================================================
-#   MODELO CANCIÓN (manual o vía Spotify)
-# ====================================================
 class Cancion(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    nombre: str = Field(index=True)
-    artista: str  # nombre escrito por usuario
-    artista_id: Optional[int] = Field(default=None, foreign_key="artista.id")
-
-    # Audio features
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    nombre: str
+    artista: str
     tempo: float
     energy: float
-    danceability: Optional[float] = Field(default=None)
-    valence: Optional[float] = Field(default=None)
-    acousticness: Optional[float] = Field(default=None)
-
-    # URLs
-    imagen_url: Optional[str] = Field(default=None)
-    spotify_id: Optional[str] = Field(default=None, index=True)
-
-    # Timestamps
+    danceability: Optional[float] = None
+    valence: Optional[float] = None
+    acousticness: Optional[float] = None
+    imagen_url: Optional[str] = None
     creado_en: datetime = Field(default_factory=datetime.utcnow)
-    deleted_at: Optional[datetime] = Field(default=None)
+    deleted_at: Optional[datetime] = None
 
-    # Relaciones
-    artista_ref: Optional[Artista] = Relationship(back_populates="canciones")
     analisis: List["AnalisisResultado"] = Relationship(back_populates="cancion")
 
 
-# ====================================================
-#       BENCHMARK (tendencia promedio por país/género)
-# ====================================================
+class Artista(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nombre: str
+    pais: Optional[str] = None
+    genero_principal: Optional[str] = None
+    popularidad: int = 50
+    imagen_url: Optional[str] = None
+    creado_en: datetime = Field(default_factory=datetime.utcnow)
+    deleted_at: Optional[datetime] = None
+
+
 class Benchmark(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    pais: str = Field(index=True)
-    genero: str = Field(index=True)
-
-    # Promedios
+    pais: str
+    genero: str
     tempo_promedio: float
     energy_promedio: float
-    danceability_promedio: float = Field(default=0.0)
-    valence_promedio: float = Field(default=0.0)
-
+    danceability_promedio: float = 0.0
+    valence_promedio: float = 0.0
     creado_en: datetime = Field(default_factory=datetime.utcnow)
-    deleted_at: Optional[datetime] = Field(default=None)
+    deleted_at: Optional[datetime] = None
 
-    # Relación con análisis
     analisis: List["AnalisisResultado"] = Relationship(back_populates="benchmark")
 
 
-# ====================================================
-#   ANALISIS: Relación N:M Canción <-> Benchmark
-# ====================================================
 class AnalisisResultado(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    cancion_id: uuid.UUID = Field(foreign_key="cancion.id")
+    cancion_id: str = Field(foreign_key="cancion.id")
     benchmark_id: int = Field(foreign_key="benchmark.id")
-
-    # Resultado de la comparación
     afinidad: float
-    hallazgo: str  # ALTO / MEDIO / BAJO
-
+    hallazgo: str
     creado_en: datetime = Field(default_factory=datetime.utcnow)
 
-    # Relaciones
     cancion: Cancion = Relationship(back_populates="analisis")
     benchmark: Benchmark = Relationship(back_populates="analisis")
 
 
-# ====================================================
-#           CONFIGURACION (global del sistema)
-# ====================================================
 class Configuracion(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    clave: str = Field(unique=True, index=True)
+    clave: str = Field(unique=True)
     valor: str
-    actualizado_en: datetime = Field(default_factory=datetime.utcnow)
