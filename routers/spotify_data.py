@@ -1,121 +1,77 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 import requests
-from typing import List, Dict, Any
 from routers.spotify_auth import get_spotify_token_dependency
 
 router = APIRouter(prefix="/spotify/data", tags=["Spotify Data"])
 
-API_URL = "https://api.spotify.com/v1"
 
-
-@router.get("/search", response_model=List[Dict[str, Any]])
-def search_track(
+@router.get("/search")
+def buscar_canciones(
         query: str,
+        limit: int = 5,
         token: str = Depends(get_spotify_token_dependency)
 ):
-    """Busca canciones en Spotify."""
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {'Authorization': f'Bearer {token}'}
     params = {
-        "q": query,
-        "type": "track",
-        "limit": 10,
-        "market": "ES"
+        'q': query,
+        'type': 'track',
+        'limit': limit,
+        'market': 'CO'
     }
 
-    try:
-        response = requests.get(
-            f"{API_URL}/search",
-            headers=headers,
-            params=params
-        )
-        response.raise_for_status()
+    response = requests.get(
+        'https://api.spotify.com/v1/search',
+        headers=headers,
+        params=params,
+        timeout=10
+    )
 
+    if response.status_code == 200:
         data = response.json()
+
         tracks = []
-
         for item in data.get('tracks', {}).get('items', []):
-            track_data = {
-                "spotify_id": item['id'],
-                "nombre": item['name'],
-                "artista": item['artists'][0]['name'] if item['artists'] else "Desconocido",
-                "imagen_url": item['album']['images'][0]['url'] if item['album']['images'] else None,
-                "preview_url": item.get('preview_url'),
-                "album": item['album']['name'],
-                "popularidad": item.get('popularity', 0)
+            track = {
+                'spotify_id': item['id'],
+                'nombre': item['name'],
+                'artista': item['artists'][0]['name'] if item['artists'] else 'Unknown',
+                'album': item['album']['name'],
+                'imagen_url': item['album']['images'][0]['url'] if item['album']['images'] else None,
+                'preview_url': item.get('preview_url'),
+                'popularity': item.get('popularity', 0)
             }
-            tracks.append(track_data)
+            tracks.append(track)
 
-        return tracks
+        return {
+            'query': query,
+            'total': len(tracks),
+            'tracks': tracks
+        }
+    else:
+        raise HTTPException(response.status_code, f"Spotify API: {response.text}")
 
-    except requests.exceptions.HTTPError as e:
-        raise HTTPException(
-            status_code=e.response.status_code if e.response else 500,
-            detail=f"Error Spotify API: {e}"
-        )
 
-
-@router.get("/audio-features/{spotify_id}")
-def get_audio_features(
-        spotify_id: str,
+@router.get("/audio-features/{track_id}")
+def obtener_audio_features(
+        track_id: str,
         token: str = Depends(get_spotify_token_dependency)
 ):
-    """Obtiene audio features de una canción."""
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {'Authorization': f'Bearer {token}'}
 
-    try:
-        response = requests.get(
-            f"{API_URL}/audio-features/{spotify_id}",
-            headers=headers
-        )
-        response.raise_for_status()
+    response = requests.get(
+        f'https://api.spotify.com/v1/audio-features/{track_id}',
+        headers=headers,
+        timeout=10
+    )
 
+    if response.status_code == 200:
         features = response.json()
         return {
-            "spotify_id": features.get("id"),
-            "tempo": features.get("tempo"),
-            "energy": features.get("energy"),
-            "danceability": features.get("danceability"),
-            "valence": features.get("valence"),
-            "acousticness": features.get("acousticness"),
-            "instrumentalness": features.get("instrumentalness"),
-            "liveness": features.get("liveness"),
-            "loudness": features.get("loudness")
+            'tempo': features.get('tempo'),
+            'energy': features.get('energy'),
+            'danceability': features.get('danceability'),
+            'valence': features.get('valence'),
+            'acousticness': features.get('acousticness')
         }
-
-    except requests.exceptions.HTTPError as e:
-        raise HTTPException(
-            status_code=e.response.status_code if e.response else 500,
-            detail=f"Error Spotify API: {e}"
-        )
-
-
-@router.get("/artist/{artist_id}")
-def get_artist_info(
-        artist_id: str,
-        token: str = Depends(get_spotify_token_dependency)
-):
-    """Obtiene información de un artista."""
-    headers = {"Authorization": f"Bearer {token}"}
-
-    try:
-        response = requests.get(
-            f"{API_URL}/artists/{artist_id}",
-            headers=headers
-        )
-        response.raise_for_status()
-
-        artist = response.json()
-        return {
-            "id": artist.get("id"),
-            "nombre": artist.get("name"),
-            "generos": artist.get("genres", []),
-            "popularidad": artist.get("popularity"),
-            "imagen_url": artist['images'][0]['url'] if artist.get('images') else None,
-            "seguidores": artist.get("followers", {}).get("total", 0)
-        }
-
-    except requests.exceptions.HTTPError as e:
-        raise HTTPException(
-            status_code=e.response.status_code if e.response else 500,
-            detail=f"Error Spotify API: {e}"
-        )
+    else:
+        raise HTTPException(response.status_code, f"Spotify API: {response.text}")
