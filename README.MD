@@ -1,102 +1,125 @@
-SPOTREND 🎧🔥
-Aplicación web para buscar artistas y canciones de Spotify, ver su información y experimentar con análisis básicos.
-Versión en producción:
-https://spotrend.onrender.com
+🎧🔥 SPOTREND — Buscador y analizador de música con Spotify API
 
+Aplicación web para buscar artistas y canciones desde Spotify, ver su información, compararlas y analizar tendencias.
 
----
+📌 Versión en producción:
+👉 https://spotrend.onrender.com
 
-🌐 TECNOLOGÍAS USADAS
+🚀 Tecnologías utilizadas
+Tecnología	Uso
+🐍 Python 3.12	Backend
+⚡ FastAPI	API y servidor web
+🎵 Spotify Web API	Fuente de datos musicales
+🎨 HTML + CSS + Bootstrap + Jinja2	Frontend
+🗄️ SQLite + SQLModel	Base de datos local
+☁️ Render.com	Hosting en producción
+🗂️ Estructura del proyecto
+📁 routers/
+ ├── analisis.py
+ ├── artista.py
+ ├── benchmark.py
+ ├── cancion.py
+ ├── comparacion_local.py
+ ├── comparar_spotify.py
+ ├── dashboard.py
+ ├── eliminados.py
+ ├── recomendaciones.py
+ ├── spotify_auth.py
+ └── spotify_data.py
 
-🐍 Python 3.12
+📁 services/
+ ├── analisis_service.py
+ └── spotify_service.py
 
-⚡ FastAPI
+📁 templates/
+ ├── analisis/
+ ├── artistas/
+ ├── benchmarks/
+ ├── canciones/
+ ├── comparacion/
+ ├── comparacion_spotify/
+ ├── eliminados/
+ ├── recomendaciones/
+ ├── spotify/
+ ├── base.html
+ ├── dashboard.html
+ ├── error.html
+ └── index.html
 
-🎵 Spotify Web API
+.gitignore  
+README.md  
+database.py  
+main.py  
+models.py  
+requirements.txt  
+supabase_service.py
 
-🎨 HTML + CSS + Bootstrap + Jinja2
-
-🗄️ SQLite + SQLModel
-
-🚀 Render (deploy)
-
-
-
----
-
-💻 INSTALACIÓN EN LOCAL
-
+💻 Instalación en local
 1️⃣ Clonar el repositorio
-git clone <URL-DE-TU-REPO>
+git clone <tu-repo>
 cd SPOTREND
 
-2️⃣ Crear el entorno virtual
-
-En Git Bash (Windows):
+2️⃣ Crear entorno virtual
+🔹 Git Bash (Windows)
 python -m venv .venv
 source .venv/Scripts/activate
 
-En PowerShell:
+🔹 PowerShell
 .venv\Scripts\Activate.ps1
 
 3️⃣ Instalar dependencias
 pip install -r requirements.txt
 
-Si no tienes ese archivo:
+
+Si no existe el archivo:
+
 pip freeze > requirements.txt
 
-4️⃣ Configurar las variables de entorno de Spotify
-(Es obligatorio para que funcione la API)
+4️⃣ Configurar variables de entorno de Spotify
+
+(Obligatorio para usar la API)
 
 Necesitas:
+
 SPOTIFY_CLIENT_ID
 SPOTIFY_CLIENT_SECRET
 
-En Git Bash:
+Git Bash
 export SPOTIFY_CLIENT_ID="tu_id"
 export SPOTIFY_CLIENT_SECRET="tu_secret"
 
-En PowerShell:
+PowerShell
 setx SPOTIFY_CLIENT_ID "tu_id"
 setx SPOTIFY_CLIENT_SECRET "tu_secret"
 
-(Después de setx toca reiniciar la terminal.)
+
+⚠️ Después de usar setx debes reiniciar la terminal.
 
 5️⃣ Ejecutar el servidor
 uvicorn main:app --reload
 
-Luego abrir en el navegador:
-http://localhost:8000
 
+Luego abre:
 
----
+👉 http://localhost:8000
 
-🚀 DESPLIEGUE EN RENDER
+🚀 Despliegue en Render
 
-La versión en producción es:
+📌 Versión desplegada:
 https://spotrend.onrender.com
 
-Para desplegar tú mismo:
-
+Cómo desplegar tu copia:
 Crear un nuevo Web Service en Render
-
-Seleccionar ambiente: Python
-
-Agregar las variables de entorno:
-• SPOTIFY_CLIENT_ID
-• SPOTIFY_CLIENT_SECRET
-
-Comando de inicio:
+Elegir Stack: Python
+Agregar variables de entorno:
+SPOTIFY_CLIENT_ID
+SPOTIFY_CLIENT_SECRET
+Colocar comando de inicio:
 uvicorn main:app --host 0.0.0.0 --port 10000
 
+💡 Render puede tardar en despertar los servicios gratuitos — totalmente normal 😴⚡
 
-Render puede tardar un poco porque los servicios gratis “duermen”, es normal 😴⚡
+📌 Notas importantes
 
-
----
-
-📌 NOTAS IMPORTANTES
-
-La aplicación pide un token a Spotify automáticamente con tu ID y Secret.
-
-Si Render tarda en cargar, es por el “cold start” del plan gratuito.
+✔ La app obtiene automáticamente un token de Spotify usando tu client ID y secret.
+✔ El “cold start” de Render puede tardar unos segundos al cargar.
