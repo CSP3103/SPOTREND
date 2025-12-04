@@ -23,7 +23,7 @@ async def spotify_info_home_html(request: Request):
     })
 
 
-@router.get("/artista/{artista_id}/html", response_class=HTMLResponse)
+@router.get("/artista/{artista_id}", response_class=HTMLResponse)
 async def obtener_info_artista_spotify_html(
         request: Request,
         artista_id: str,
@@ -32,7 +32,7 @@ async def obtener_info_artista_spotify_html(
     """Información de artista desde Spotify (HTML)"""
     try:
         data = await obtener_info_artista_spotify(artista_id, token)
-        return templates.TemplateResponse("artista.html", {
+        return templates.TemplateResponse("spotify/artista.html", {
             "request": request,
             "info": data
         })
@@ -44,7 +44,7 @@ async def obtener_info_artista_spotify_html(
         })
 
 
-@router.get("/buscar-artista/html", response_class=HTMLResponse)
+@router.get("/buscar-artista", response_class=HTMLResponse)
 async def buscar_artista_spotify_html(
         request: Request,
         nombre: str = None,
@@ -52,7 +52,7 @@ async def buscar_artista_spotify_html(
 ):
     """Buscar artista en Spotify (HTML)"""
     if not nombre:
-        return templates.TemplateResponse("buscar_artista.html", {
+        return templates.TemplateResponse("spotify/buscar_artista.html", {
             "request": request,
             "busqueda": None,
             "resultados": None
@@ -60,21 +60,24 @@ async def buscar_artista_spotify_html(
 
     try:
         resultados = await buscar_artista_spotify(nombre, token)
-        return templates.TemplateResponse("buscar_artista.html", {
+        # note: buscar_artista_spotify devuelve dict con 'resultados' etc. adaptamos:
+        resultados_lista = resultados.get("resultados") if isinstance(resultados, dict) else resultados
+        return templates.TemplateResponse("spotify/buscar_artista.html", {
             "request": request,
             "busqueda": nombre,
-            "resultados": resultados
+            "resultados": resultados_lista
         })
     except Exception as e:
         logger.error(f"Error HTML buscando artista {nombre}: {e}")
-        return templates.TemplateResponse("buscar_artista.html", {
+        return templates.TemplateResponse("spotify/buscar_artista.html", {
             "request": request,
             "busqueda": nombre,
-            "error": f"Error en la búsqueda: {str(e)[:100]}"
+            "error": f"Error en la búsqueda: {str(e)[:100]}",
+            "resultados": None
         })
 
 
-@router.get("/track/{track_id}/html", response_class=HTMLResponse)
+@router.get("/track/{track_id}", response_class=HTMLResponse)
 async def obtener_info_track_spotify_html(
         request: Request,
         track_id: str,
@@ -83,7 +86,7 @@ async def obtener_info_track_spotify_html(
     """Información de track desde Spotify (HTML)"""
     try:
         data = await obtener_info_track_spotify(track_id, token)
-        return templates.TemplateResponse("track.html", {
+        return templates.TemplateResponse("spotify/track.html", {
             "request": request,
             "info": data
         })
@@ -95,7 +98,7 @@ async def obtener_info_track_spotify_html(
         })
 
 
-@router.get("/buscar-track/html", response_class=HTMLResponse)
+@router.get("/buscar-track", response_class=HTMLResponse)
 async def buscar_track_spotify_html(
         request: Request,
         nombre: str = None,
@@ -103,7 +106,7 @@ async def buscar_track_spotify_html(
 ):
     """Buscar track en Spotify (HTML)"""
     if not nombre:
-        return templates.TemplateResponse("buscar_track.html", {
+        return templates.TemplateResponse("spotify/buscar_track.html", {
             "request": request,
             "busqueda": None,
             "resultados": None
@@ -111,21 +114,23 @@ async def buscar_track_spotify_html(
 
     try:
         resultados = await buscar_track_spotify(nombre, token)
-        return templates.TemplateResponse("buscar_track.html", {
+        resultados_lista = resultados.get("resultados") if isinstance(resultados, dict) else resultados
+        return templates.TemplateResponse("spotify/buscar_track.html", {
             "request": request,
             "busqueda": nombre,
-            "resultados": resultados
+            "resultados": resultados_lista
         })
     except Exception as e:
         logger.error(f"Error HTML buscando track {nombre}: {e}")
-        return templates.TemplateResponse("buscar_track.html", {
+        return templates.TemplateResponse("spotify/buscar_track.html", {
             "request": request,
             "busqueda": nombre,
-            "error": f"Error en la búsqueda: {str(e)[:100]}"
+            "error": f"Error en la búsqueda: {str(e)[:100]}",
+            "resultados": None
         })
 
 
-# ========== ENDPOINTS ORIGINALES (MANTENER SIN CAMBIOS) ==========
+# ========== ENDPOINTS ORIGINALES (JSON) ==========
 
 @router.get("/artista/{artista_id}")
 async def obtener_info_artista_spotify(

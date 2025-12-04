@@ -17,7 +17,7 @@ templates = Jinja2Templates(directory="templates")
 
 # ========== ENDPOINTS HTML ==========
 
-@router.get("/cancion/{cancion_id}/html", response_class=HTMLResponse)
+@router.get("/cancion/{cancion_id}", response_class=HTMLResponse)
 async def recomendar_similares_html(
         request: Request,
         cancion_id: str,
@@ -41,7 +41,7 @@ async def recomendar_similares_html(
         })
 
 
-@router.get("/artista/{artista_id}/html", response_class=HTMLResponse)
+@router.get("/artista/{artista_id}", response_class=HTMLResponse)
 async def recomendar_artistas_similares_html(
         request: Request,
         artista_id: int,
@@ -64,7 +64,7 @@ async def recomendar_artistas_similares_html(
         })
 
 
-@router.get("/descubrimiento/html", response_class=HTMLResponse)
+@router.get("/descubrimiento", response_class=HTMLResponse)
 async def canciones_descubrimiento_html(
         request: Request,
         session: Session = Depends(get_session)
@@ -87,7 +87,7 @@ async def canciones_descubrimiento_html(
         })
 
 
-@router.get("/para-benchmark/{benchmark_id}/html", response_class=HTMLResponse)
+@router.get("/para-benchmark/{benchmark_id}", response_class=HTMLResponse)
 async def recomendar_para_benchmark_html(
         request: Request,
         benchmark_id: int,
@@ -115,14 +115,27 @@ async def recomendar_para_benchmark_html(
 def _generar_razon_recomendacion(base, candidato, similitud):
     razones = []
 
-    if abs(base.tempo - candidato.tempo) < 10:
-        razones.append("Tempo similar")
+    # Protección por si atributos son None
+    try:
+        if getattr(base, "tempo", None) is not None and getattr(candidato, "tempo", None) is not None:
+            if abs(base.tempo - candidato.tempo) < 10:
+                razones.append("Tempo similar")
+    except Exception:
+        pass
 
-    if abs(base.energy - candidato.energy) < 0.2:
-        razones.append("Energy similar")
+    try:
+        if getattr(base, "energy", None) is not None and getattr(candidato, "energy", None) is not None:
+            if abs(base.energy - candidato.energy) < 0.2:
+                razones.append("Energy similar")
+    except Exception:
+        pass
 
-    if base.artista == candidato.artista:
-        razones.append("Mismo artista")
+    try:
+        if getattr(base, "artista", None) and getattr(candidato, "artista", None):
+            if base.artista == candidato.artista:
+                razones.append("Mismo artista")
+    except Exception:
+        pass
 
     if not razones:
         if similitud > 80:
@@ -138,16 +151,26 @@ def _generar_razon_recomendacion(base, candidato, similitud):
 def _generar_razon_artista(base, candidato, similitud):
     razones = []
 
-    if base.genero_principal and candidato.genero_principal:
-        if base.genero_principal.lower() == candidato.genero_principal.lower():
-            razones.append("Mismo género")
+    try:
+        if getattr(base, "genero_principal", None) and getattr(candidato, "genero_principal", None):
+            if base.genero_principal.lower() == candidato.genero_principal.lower():
+                razones.append("Mismo género")
+    except Exception:
+        pass
 
-    if base.pais and candidato.pais:
-        if base.pais.lower() == candidato.pais.lower():
-            razones.append("Mismo país")
+    try:
+        if getattr(base, "pais", None) and getattr(candidato, "pais", None):
+            if base.pais.lower() == candidato.pais.lower():
+                razones.append("Mismo país")
+    except Exception:
+        pass
 
-    if abs(base.popularidad - candidato.popularidad) < 20:
-        razones.append("Popularidad similar")
+    try:
+        if getattr(base, "popularidad", None) is not None and getattr(candidato, "popularidad", None) is not None:
+            if abs(base.popularidad - candidato.popularidad) < 20:
+                razones.append("Popularidad similar")
+    except Exception:
+        pass
 
     if razones:
         return ", ".join(razones)
@@ -185,38 +208,44 @@ async def recomendar_similares(
 
         recomendaciones = []
         for cancion in canciones:
-            tempo_diff = abs(cancion_base.tempo - cancion.tempo) / 200
-            energy_diff = abs(cancion_base.energy - cancion.energy)
+            # Guardar acceso seguro a atributos
+            tempo_a = getattr(cancion_base, "tempo", 0) or 0
+            tempo_b = getattr(cancion, "tempo", 0) or 0
+            energy_a = getattr(cancion_base, "energy", 0) or 0
+            energy_b = getattr(cancion, "energy", 0) or 0
 
-            similitud_tempo = 1 - tempo_diff
-            similitud_energy = 1 - energy_diff
+            tempo_diff = abs(tempo_a - tempo_b) / 200
+            energy_diff = abs(energy_a - energy_b)
 
-            if cancion_base.danceability and cancion.danceability:
+            similitud_tempo = max(0, 1 - tempo_diff)
+            similitud_energy = max(0, 1 - energy_diff)
+
+            if getattr(cancion_base, "danceability", None) is not None and getattr(cancion, "danceability", None) is not None:
                 dance_diff = abs(cancion_base.danceability - cancion.danceability)
-                similitud_dance = 1 - dance_diff
+                similitud_dance = max(0, 1 - dance_diff)
             else:
                 similitud_dance = 0.5
 
-            if cancion_base.valence and cancion.valence:
+            if getattr(cancion_base, "valence", None) is not None and getattr(cancion, "valence", None) is not None:
                 valence_diff = abs(cancion_base.valence - cancion.valence)
-                similitud_valence = 1 - valence_diff
+                similitud_valence = max(0, 1 - valence_diff)
             else:
                 similitud_valence = 0.5
 
             similitud_total = (
-                                      similitud_tempo * 0.3 +
-                                      similitud_energy * 0.3 +
-                                      similitud_dance * 0.2 +
-                                      similitud_valence * 0.2
-                              ) * 100
+                                  similitud_tempo * 0.3 +
+                                  similitud_energy * 0.3 +
+                                  similitud_dance * 0.2 +
+                                  similitud_valence * 0.2
+                          ) * 100
 
             recomendaciones.append({
                 "cancion": cancion,
                 "similitudes": {
                     "tempo": round(similitud_tempo * 100, 1),
                     "energy": round(similitud_energy * 100, 1),
-                    "danceability": round(similitud_dance * 100, 1) if cancion.danceability else None,
-                    "valence": round(similitud_valence * 100, 1) if cancion.valence else None,
+                    "danceability": round(similitud_dance * 100, 1) if getattr(cancion, "danceability", None) is not None else None,
+                    "valence": round(similitud_valence * 100, 1) if getattr(cancion, "valence", None) is not None else None,
                     "total": round(similitud_total, 1)
                 },
                 "razon": _generar_razon_recomendacion(cancion_base, cancion, similitud_total)
@@ -266,17 +295,26 @@ async def recomendar_artistas_similares(
         for artista in artistas:
             similitud = 0
 
-            if artista_base.genero_principal and artista.genero_principal:
-                if artista_base.genero_principal.lower() == artista.genero_principal.lower():
-                    similitud += 50
+            try:
+                if artista_base.genero_principal and artista.genero_principal:
+                    if artista_base.genero_principal.lower() == artista.genero_principal.lower():
+                        similitud += 50
+            except Exception:
+                pass
 
-            if artista_base.pais and artista.pais:
-                if artista_base.pais.lower() == artista.pais.lower():
-                    similitud += 30
+            try:
+                if artista_base.pais and artista.pais:
+                    if artista_base.pais.lower() == artista.pais.lower():
+                        similitud += 30
+            except Exception:
+                pass
 
-            pop_diff = abs(artista_base.popularidad - artista.popularidad)
-            if pop_diff < 20:
-                similitud += 20
+            try:
+                pop_diff = abs((artista_base.popularidad or 0) - (artista.popularidad or 0))
+                if pop_diff < 20:
+                    similitud += 20
+            except Exception:
+                pass
 
             recomendaciones.append({
                 "artista": artista,
@@ -374,8 +412,8 @@ async def recomendar_para_benchmark(
 
         recomendaciones = []
         for cancion in canciones:
-            tempo_diff = abs(cancion.tempo - benchmark.tempo_promedio)
-            energy_diff = abs(cancion.energy - benchmark.energy_promedio)
+            tempo_diff = abs((getattr(cancion, "tempo", 0) or 0) - (benchmark.tempo_promedio or 0))
+            energy_diff = abs((getattr(cancion, "energy", 0) or 0) - (benchmark.energy_promedio or 0))
 
             distancia = (tempo_diff / 200 * 100 * 0.5) + (energy_diff * 100 * 0.5)
             afinidad = max(0, 100 - distancia)
@@ -386,9 +424,9 @@ async def recomendar_para_benchmark(
                     "afinidad_con_benchmark": round(afinidad, 1),
                     "explicacion": f"Ideal para {benchmark.genero} en {benchmark.pais}",
                     "metricas_comparadas": {
-                        "tempo_cancion": cancion.tempo,
+                        "tempo_cancion": getattr(cancion, "tempo", None),
                         "tempo_benchmark": benchmark.tempo_promedio,
-                        "energy_cancion": cancion.energy,
+                        "energy_cancion": getattr(cancion, "energy", None),
                         "energy_benchmark": benchmark.energy_promedio
                     }
                 })
