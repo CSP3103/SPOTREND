@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cancion.nombre }} - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>
+        {% if cancion.imagen_url %}
+        <img src="{{ cancion.imagen_url }}" alt="{{ cancion.nombre }}" 
+             style="width: 50px; height: 50px; border-radius: 5px; object-fit: cover; margin-right: 10px;">
+        {% else %}
+        <i class="fas fa-music"></i>
+        {% endif %}
+        {{ cancion.nombre }}
+    </h1>
+    <div>
+        <a href="/canciones/{{ cancion.id }}/editar" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Editar
+        </a>
+        <a href="/canciones" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-info-circle"></i> Información de la Canción</h2>
+            </div>
+            
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <h5><i class="fas fa-heading"></i> Nombre</h5>
+                            <p class="info-value">{{ cancion.nombre }}</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <h5><i class="fas fa-user"></i> Artista</h5>
+                            <p class="info-value">{{ cancion.artista }}</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <h5><i class="fas fa-tachometer-alt"></i> Tempo</h5>
+                            <p class="info-value">
+                                <span class="badge badge-info">{{ cancion.tempo }} BPM</span>
+                            </p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <h5><i class="fas fa-bolt"></i> Energy</h5>
+                            <p class="info-value">
+                                <span class="badge badge-success">{{ "%.2f"|format(cancion.energy) }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        {% if cancion.danceability is not none %}
+                        <div class="info-item">
+                            <h5><i class="fas fa-heart"></i> Danceability</h5>
+                            <p class="info-value">
+                                <span class="badge" style="background: #e91e63; color: white;">
+                                    {{ "%.2f"|format(cancion.danceability) }}
+                                </span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if cancion.valence is not none %}
+                        <div class="info-item">
+                            <h5><i class="fas fa-smile"></i> Valence</h5>
+                            <p class="info-value">
+                                <span class="badge" style="background: #4caf50; color: white;">
+                                    {{ "%.2f"|format(cancion.valence) }}
+                                </span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if cancion.acousticness is not none %}
+                        <div class="info-item">
+                            <h5><i class="fas fa-guitar"></i> Acousticness</h5>
+                            <p class="info-value">
+                                <span class="badge" style="background: #2196f3; color: white;">
+                                    {{ "%.2f"|format(cancion.acousticness) }}
+                                </span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="info-item">
+                            <h5><i class="fas fa-calendar"></i> Fecha de Creación</h5>
+                            <p class="info-value">{{ cancion.creado_en.strftime('%d/%m/%Y %H:%M') }}</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <h5><i class="fas fa-fingerprint"></i> ID</h5>
+                            <p class="info-value"><code>{{ cancion.id }}</code></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> Métricas Visuales</h2>
+            </div>
+            <div class="card-body">
+                <div style="max-width: 400px; margin: 0 auto;">
+                    <div class="metric-bar mb-3">
+                        <div class="metric-label">Tempo: {{ cancion.tempo }} BPM</div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-info" 
+                                 style="width: {{ (cancion.tempo / 300 * 100)|round|int }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-bar mb-3">
+                        <div class="metric-label">Energy: {{ "%.2f"|format(cancion.energy) }}</div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {{ (cancion.energy * 100)|round|int }}%"></div>
+                        </div>
+                    </div>
+                    
+                    {% if cancion.danceability is not none %}
+                    <div class="metric-bar mb-3">
+                        <div class="metric-label">Danceability: {{ "%.2f"|format(cancion.danceability) }}</div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" style="background: #e91e63; width: {{ (cancion.danceability * 100)|round|int }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-rocket"></i> Acciones Rápidas</h2>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/analisis-v2/cancion/{{ cancion.id }}" class="btn btn-info btn-block">
+                        <i class="fas fa-search"></i> Analizar Canción
+                    </a>
+                    
+                    <a href="/recomendaciones/cancion/{{ cancion.id }}" class="btn btn-warning btn-block">
+                        <i class="fas fa-star"></i> Obtener Recomendaciones
+                    </a>
+                    
+                    <a href="/comparar/cancion/{{ cancion.id }}" class="btn btn-primary btn-block">
+                        <i class="fab fa-spotify"></i> Comparar con Spotify
+                    </a>
+                    
+                    <a href="/comparacion-local/canciones/{{ cancion.id }}/comparar" class="btn btn-secondary btn-block">
+                        <i class="fas fa-exchange-alt"></i> Comparar Localmente
+                    </a>
+                    
+                    <a href="/canciones/{{ cancion.id }}/eliminar" class="btn btn-danger btn-block">
+                        <i class="fas fa-trash"></i> Eliminar Canción
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-code"></i> Información Técnica</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Endpoint API:</strong></p>
+                <code>GET /canciones/{{ cancion.id }}</code>
+                
+                <div class="mt-3">
+                    <p><strong>JSON Response:</strong></p>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
+{
+  "id": "{{ cancion.id }}",
+  "nombre": "{{ cancion.nombre }}",
+  "artista": "{{ cancion.artista }}",
+  "tempo": {{ cancion.tempo }},
+  "energy": {{ cancion.energy }},
+  "danceability": {{ cancion.danceability if cancion.danceability else 'null' }},
+  "valence": {{ cancion.valence if cancion.valence else 'null' }},
+  "acousticness": {{ cancion.acousticness if cancion.acousticness else 'null' }},
+  "imagen_url": {{ '"' + cancion.imagen_url + '"' if cancion.imagen_url else 'null' }},
+  "creado_en": "{{ cancion.creado_en }}"
+}</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-history"></i> Historial</h2>
+            </div>
+            <div class="card-body">
+                <p><i class="fas fa-calendar-check"></i> Creada: {{ cancion.creado_en.strftime('%d/%m/%Y') }}</p>
+                
+                {% if cancion.deleted_at %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-trash"></i> Eliminada: {{ cancion.deleted_at.strftime('%d/%m/%Y %H:%M') }}
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Estado: Activa
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item h5 {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-item h5 i {
+    width: 20px;
+    text-align: center;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.metric-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.d-grid {
+    display: grid;
+}
+</style>
+{% endblock %}

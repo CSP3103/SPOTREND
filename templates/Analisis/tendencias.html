@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Tendencias de Análisis - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-chart-line"></i> Tendencias de Análisis</h1>
+    <div>
+        <span class="badge badge-info">{{ datos.periodo }}</span>
+        <a href="/analisis-v2" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> Resumen de Tendencias</h2>
+                <span class="badge badge-primary">{{ datos.total_analisis }} análisis</span>
+            </div>
+            <div class="card-body">
+                {% if datos.tendencias %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Benchmark</th>
+                                <th>Análisis</th>
+                                <th>Afinidad Promedio</th>
+                                <th>Distribución</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tendencia in datos.tendencias %}
+                            <tr>
+                                <td>
+                                    <strong>{{ tendencia.benchmark }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">{{ tendencia.total_analisis }}</span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 25px;">
+                                        {% if tendencia.afinidad_promedio > 80 %}
+                                        <div class="progress-bar bg-success" style="width: {{ tendencia.afinidad_promedio }}%">
+                                        {% elif tendencia.afinidad_promedio > 60 %}
+                                        <div class="progress-bar bg-warning" style="width: {{ tendencia.afinidad_promedio }}%">
+                                        {% elif tendencia.afinidad_promedio > 40 %}
+                                        <div class="progress-bar bg-info" style="width: {{ tendencia.afinidad_promedio }}%">
+                                        {% else %}
+                                        <div class="progress-bar bg-danger" style="width: {{ tendencia.afinidad_promedio }}%">
+                                        {% endif %}
+                                            {{ tendencia.afinidad_promedio }}%
+                                        </div>
+                                    </div>
+                                    </td>
+                                <td>
+                                    <div style="display: flex; gap: 5px;">
+                                        {% if tendencia.niveles.EXCELENTE > 0 %}
+                                        <span class="badge badge-success" title="Excelente">
+                                            {{ tendencia.niveles.EXCELENTE }} 🎵
+                                        </span>
+                                        {% endif %}
+                                        {% if tendencia.niveles.BUENO > 0 %}
+                                        <span class="badge badge-warning" title="Bueno">
+                                            {{ tendencia.niveles.BUENO }} ✅
+                                        </span>
+                                        {% endif %}
+                                        {% if tendencia.niveles.REGULAR > 0 %}
+                                        <span class="badge badge-info" title="Regular">
+                                            {{ tendencia.niveles.REGULAR }} ⚠️
+                                        </span>
+                                        {% endif %}
+                                        {% if tendencia.niveles.BAJO > 0 %}
+                                        <span class="badge badge-danger" title="Bajo">
+                                            {{ tendencia.niveles.BAJO }} ❌
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info"
+                                            onclick="mostrarDetallesTendencia('{{ tendencia.benchmark }}', {{ tendencia|tojson }})">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Estadísticas Generales -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h1 class="display-4 text-primary">{{ datos.total_analisis }}</h1>
+                                <p class="text-muted">Análisis Totales</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h1 class="display-4 text-success">{{ datos.tendencias|length }}</h1>
+                                <p class="text-muted">Benchmarks Analizados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                    <h3>No hay tendencias recientes</h3>
+                    <p class="text-muted">Realiza análisis de canciones para ver tendencias</p>
+                    <a href="/canciones" class="btn btn-primary">
+                        <i class="fas fa-music"></i> Ir a Canciones
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Información del Período -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-calendar"></i> Período de Análisis</h2>
+            </div>
+            <div class="card-body">
+                <h5>{{ datos.periodo }}</h5>
+                <p class="text-muted">Se muestran los últimos 7 días de actividad</p>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Interpretación:</strong> 
+                    Los benchmarks con mayor afinidad promedio son los más exitosos
+                </div>
+                
+                <h6><i class="fas fa-filter"></i> Filtros Disponibles</h6>
+                <div class="d-grid gap-2">
+                    <a href="/analisis-v2/tendencias?dias=7" class="btn btn-sm btn-outline-primary">
+                        Últimos 7 días
+                    </a>
+                    <a href="/analisis-v2/tendencias?dias=30" class="btn btn-sm btn-outline-secondary">
+                        Últimos 30 días
+                    </a>
+                    <a href="/analisis-v2/tendencias?dias=90" class="btn btn-sm btn-outline-secondary">
+                        Últimos 90 días
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Insights -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-lightbulb"></i> Insights</h2>
+            </div>
+            <div class="card-body">
+                {% if datos.tendencias %}
+                {% set mejor = datos.tendencias|first %}
+                {% set peor = datos.tendencias|last %}
+                
+                <h6><i class="fas fa-trophy text-success"></i> Mejor Benchmark</h6>
+                <p>
+                    <strong>{{ mejor.benchmark }}</strong><br>
+                    Afinidad: {{ mejor.afinidad_promedio }}%<br>
+                    Análisis: {{ mejor.total_analisis }}
+                </p>
+                
+                <h6><i class="fas fa-exclamation-triangle text-danger"></i> Peor Benchmark</h6>
+                <p>
+                    <strong>{{ peor.benchmark }}</strong><br>
+                    Afinidad: {{ peor.afinidad_promedio }}%<br>
+                    Análisis: {{ peor.total_analisis }}
+                </p>
+                {% else %}
+                <p class="text-muted">No hay datos suficientes para insights</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Acciones -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-bolt"></i> Acciones Rápidas</h2>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/canciones" class="btn btn-outline-primary">
+                        <i class="fas fa-music"></i> Analizar Canciones
+                    </a>
+                    <a href="/benchmarks" class="btn btn-outline-warning">
+                        <i class="fas fa-chart-line"></i> Gestionar Benchmarks
+                    </a>
+                    <a href="/dashboard" class="btn btn-outline-info">
+                        <i class="fas fa-tachometer-alt"></i> Ver Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalles de tendencia -->
+<div class="modal fade" id="tendenciaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles de Tendencia</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="tendenciaContenido">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function mostrarDetallesTendencia(benchmark, datos) {
+    let contenido = `
+        <h4>${benchmark}</h4>
+        <div class="mb-3">
+            <strong>Análisis Totales:</strong> ${datos.total_analisis}<br>
+            <strong>Afinidad Promedio:</strong> ${datos.afinidad_promedio}%
+        </div>
+        
+        <h6>Distribución de Niveles:</h6>
+        <div class="row text-center">
+            <div class="col-3">
+                <div class="p-2 bg-success text-white rounded">
+                    <strong>${datos.niveles.EXCELENTE || 0}</strong><br>
+                    <small>🎵 Excelente</small>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="p-2 bg-warning text-white rounded">
+                    <strong>${datos.niveles.BUENO || 0}</strong><br>
+                    <small>✅ Bueno</small>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="p-2 bg-info text-white rounded">
+                    <strong>${datos.niveles.REGULAR || 0}</strong><br>
+                    <small>⚠️ Regular</small>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="p-2 bg-danger text-white rounded">
+                    <strong>${datos.niveles.BAJO || 0}</strong><br>
+                    <small>❌ Bajo</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-chart-line"></i>
+            <strong>Tendencia:</strong> 
+            ${datos.total_analisis} análisis en el período
+        </div>
+    `;
+    
+    document.getElementById('tendenciaContenido').innerHTML = contenido;
+    $('#tendenciaModal').modal('show');
+}
+</script>
+{% endblock %}

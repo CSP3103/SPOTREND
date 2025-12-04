@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Benchmark {{ benchmark.genero }} ({{ benchmark.pais }}) - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-chart-line"></i>
+        Benchmark: {{ benchmark.genero }} ({{ benchmark.pais }})
+    </h1>
+    <div>
+        <a href="/benchmarks/{{ benchmark.id }}/editar" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Editar
+        </a>
+        <a href="/benchmarks" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-info-circle"></i> Información del Benchmark</h2>
+            </div>
+            
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <h5><i class="fas fa-globe-americas"></i> País</h5>
+                            <p class="info-value">
+                                <span class="badge badge-info" style="font-size: 1rem;">
+                                    {{ benchmark.pais }}
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <h5><i class="fas fa-guitar"></i> Género Musical</h5>
+                            <p class="info-value">
+                                <span class="badge badge-success" style="font-size: 1rem;">
+                                    {{ benchmark.genero }}
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <h5><i class="fas fa-tachometer-alt"></i> Tempo Promedio</h5>
+                            <p class="info-value">
+                                <span class="badge badge-secondary" style="font-size: 1.1rem;">
+                                    {{ "%.1f"|format(benchmark.tempo_promedio) }} BPM
+                                </span>
+                            </p>
+                            <div class="progress" style="height: 15px; margin-top: 5px;">
+                                <div class="progress-bar bg-info" 
+                                     style="width: {{ (benchmark.tempo_promedio / 200 * 100)|round|int }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">Rango típico: 60-200 BPM</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <h5><i class="fas fa-bolt"></i> Energy Promedio</h5>
+                            <p class="info-value">
+                                <span class="badge badge-warning" style="font-size: 1.1rem;">
+                                    {{ "%.3f"|format(benchmark.energy_promedio) }}
+                                </span>
+                            </p>
+                            <div class="progress" style="height: 15px; margin-top: 5px;">
+                                <div class="progress-bar bg-warning" 
+                                     style="width: {{ (benchmark.energy_promedio * 100)|round|int }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">0.0 (calma) - 1.0 (energética)</small>
+                        </div>
+                        
+                        {% if benchmark.danceability_promedio %}
+                        <div class="info-item">
+                            <h5><i class="fas fa-heart"></i> Danceability Promedio</h5>
+                            <p class="info-value">
+                                <span class="badge" style="background: #e91e63; color: white; font-size: 1.1rem;">
+                                    {{ "%.3f"|format(benchmark.danceability_promedio) }}
+                                </span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if benchmark.valence_promedio %}
+                        <div class="info-item">
+                            <h5><i class="fas fa-smile"></i> Valence Promedio</h5>
+                            <p class="info-value">
+                                <span class="badge" style="background: #4caf50; color: white; font-size: 1.1rem;">
+                                    {{ "%.3f"|format(benchmark.valence_promedio) }}
+                                </span>
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="info-item">
+                            <h5><i class="fas fa-calendar"></i> Fecha de Creación</h5>
+                            <p class="info-value">{{ benchmark.creado_en.strftime('%d/%m/%Y %H:%M') }}</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <h5><i class="fas fa-fingerprint"></i> ID</h5>
+                            <p class="info-value"><code>{{ benchmark.id }}</code></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> Interpretación del Benchmark</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-music text-info"></i> Tempo {{ "%.1f"|format(benchmark.tempo_promedio) }} BPM</h5>
+                        <ul>
+                            {% if benchmark.tempo_promedio < 90 %}
+                            <li><strong>Lento:</strong> Baladas, música ambiental</li>
+                            {% elif benchmark.tempo_promedio < 120 %}
+                            <li><strong>Moderado:</strong> Pop, rock estándar</li>
+                            {% elif benchmark.tempo_promedio < 140 %}
+                            <li><strong>Rápido:</strong> Dance, hip-hop</li>
+                            {% else %}
+                            <li><strong>Muy rápido:</strong> EDM, techno</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-bolt text-warning"></i> Energy {{ "%.3f"|format(benchmark.energy_promedio) }}</h5>
+                        <ul>
+                            {% if benchmark.energy_promedio < 0.3 %}
+                            <li><strong>Baja energía:</strong> Música relajante, acústica</li>
+                            {% elif benchmark.energy_promedio < 0.7 %}
+                            <li><strong>Energía media:</strong> Pop comercial, indie</li>
+                            {% else %}
+                            <li><strong>Alta energía:</strong> Rock, electrónica, rap</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                
+                {% if benchmark.danceability_promedio %}
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-heart" style="color: #e91e63;"></i> Danceability {{ "%.3f"|format(benchmark.danceability_promedio) }}</h5>
+                        <p>
+                            {% if benchmark.danceability_promedio < 0.4 %}
+                            Poco bailable
+                            {% elif benchmark.danceability_promedio < 0.7 %}
+                            Moderadamente bailable
+                            {% else %}
+                            Muy bailable
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    {% if benchmark.valence_promedio %}
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-smile" style="color: #4caf50;"></i> Valence {{ "%.3f"|format(benchmark.valence_promedio) }}</h5>
+                        <p>
+                            {% if benchmark.valence_promedio < 0.4 %}
+                            Tonalidad más melancólica
+                            {% elif benchmark.valence_promedio < 0.7 %}
+                            Tonalidad neutral
+                            {% else %}
+                            Tonalidad positiva/feliz
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-search"></i> Analizar Canciones con este Benchmark</h2>
+            </div>
+            <div class="card-body">
+                <p>Usa este benchmark para analizar cómo se ajustan tus canciones a este mercado:</p>
+                <div class="d-grid gap-2">
+                    <a href="/analisis-v2/benchmark/{{ benchmark.id }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-chart-bar"></i> Analizar Todas las Canciones
+                    </a>
+                    <a href="/recomendaciones/para-benchmark/{{ benchmark.id }}" class="btn btn-success">
+                        <i class="fas fa-star"></i> Ver Canciones Recomendadas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-rocket"></i> Acciones Rápidas</h2>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/analisis-v2/benchmark/{{ benchmark.id }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-chart-bar"></i> Analizar con este Benchmark
+                    </a>
+                    
+                    <a href="/recomendaciones/para-benchmark/{{ benchmark.id }}" class="btn btn-success btn-block">
+                        <i class="fas fa-star"></i> Canciones Recomendadas
+                    </a>
+                    
+                    <a href="/benchmarks/{{ benchmark.id }}/editar" class="btn btn-warning btn-block">
+                        <i class="fas fa-edit"></i> Editar Benchmark
+                    </a>
+                    
+                    <a href="/benchmarks/{{ benchmark.id }}/duplicar" class="btn btn-info btn-block">
+                        <i class="fas fa-copy"></i> Duplicar Benchmark
+                    </a>
+                    
+                    <a href="/benchmarks/{{ benchmark.id }}/eliminar" class="btn btn-danger btn-block">
+                        <i class="fas fa-trash"></i> Eliminar Benchmark
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-code"></i> Información Técnica</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Endpoint API:</strong></p>
+                <code>GET /benchmarks/{{ benchmark.id }}</code>
+                
+                <div class="mt-3">
+                    <p><strong>JSON Response:</strong></p>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
+{
+  "id": {{ benchmark.id }},
+  "pais": "{{ benchmark.pais }}",
+  "genero": "{{ benchmark.genero }}",
+  "tempo_promedio": {{ benchmark.tempo_promedio }},
+  "energy_promedio": {{ benchmark.energy_promedio }},
+  "danceability_promedio": {{ benchmark.danceability_promedio if benchmark.danceability_promedio else 'null' }},
+  "valence_promedio": {{ benchmark.valence_promedio if benchmark.valence_promedio else 'null' }},
+  "creado_en": "{{ benchmark.creado_en }}",
+  "deleted_at": {{ '"' + benchmark.deleted_at.strftime('%Y-%m-%d %H:%M:%S') + '"' if benchmark.deleted_at else 'null' }}
+}</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-history"></i> Historial</h2>
+            </div>
+            <div class="card-body">
+                <p><i class="fas fa-calendar-check"></i> Creado: {{ benchmark.creado_en.strftime('%d/%m/%Y') }}</p>
+                
+                {% if benchmark.deleted_at %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-trash"></i> Eliminado: {{ benchmark.deleted_at.strftime('%d/%m/%Y %H:%M') }}
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Estado: Activo
+                </div>
+                {% endif %}
+                
+                <p class="mb-0">
+                    <i class="fas fa-chart-bar"></i> 
+                    Último análisis: <strong>Hoy</strong>
+                </p>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-lightbulb"></i> Consejos</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success"></i>
+                        <strong>Bueno para:</strong> {{ benchmark.genero }} en {{ benchmark.pais }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-bullseye text-info"></i>
+                        <strong>Tempo objetivo:</strong> {{ "%.0f"|format(benchmark.tempo_promedio) }} ± 20 BPM
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-bolt text-warning"></i>
+                        <strong>Energy objetivo:</strong> {{ "%.2f"|format(benchmark.energy_promedio) }} ± 0.2
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item h5 {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-item h5 i {
+    width: 20px;
+    text-align: center;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.d-grid {
+    display: grid;
+}
+</style>
+{% endblock %}

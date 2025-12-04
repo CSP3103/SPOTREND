@@ -1,182 +1,144 @@
 # routers/comparacion_local.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from sqlmodel import Session, select
 from database import get_session
 from models import Cancion, Artista
 import logging
 import asyncio
 
-router = APIRouter(prefix="/comparar-local", tags=["Comparación Local"])
+router = APIRouter(prefix="/comparacion-local", tags=["Comparación Local"])
 logger = logging.getLogger(__name__)
 
+# Templates
+templates = Jinja2Templates(directory="templates")
 
-@router.get("/artistas/{artista1_id}/{artista2_id}")
-async def comparar_artistas_locales(
-        artista1_id: int,
-        artista2_id: int,
-        session: Session = Depends(get_session)
+# ========== ENDPOINTS HTML ==========
+
+@router.get("/", response_class=HTMLResponse)
+async def pagina_comparacion_local(
+    request: Request,
+    session: Session = Depends(get_session)
 ):
-    """Compara dos artistas locales entre sí"""
+    """Página principal de comparación local"""
     try:
-        await asyncio.sleep(0.01)
-
-        # Obtener ambos artistas
-        artista1 = session.get(Artista, artista1_id)
-        artista2 = session.get(Artista, artista2_id)
-
-        if not artista1 or artista1.deleted_at:
-            raise HTTPException(404, f"Artista 1 (ID: {artista1_id}) no encontrado")
-        if not artista2 or artista2.deleted_at:
-            raise HTTPException(404, f"Artista 2 (ID: {artista2_id}) no encontrado")
-
-        # Comparar atributos
-        comparaciones = []
-
-        # 1. Comparar género
-        if artista1.genero_principal and artista2.genero_principal:
-            mismo_genero = artista1.genero_principal.lower() == artista2.genero_principal.lower()
-            comparaciones.append({
-                "atributo": "Género principal",
-                "artista1": artista1.genero_principal,
-                "artista2": artista2.genero_principal,
-                "coincide": mismo_genero,
-                "puntuacion": 50 if mismo_genero else 0
-            })
-        else:
-            comparaciones.append({
-                "atributo": "Género principal",
-                "artista1": artista1.genero_principal or "No definido",
-                "artista2": artista2.genero_principal or "No definido",
-                "coincide": "No comparable",
-                "puntuacion": 25
-            })
-
-        # 2. Comparar país
-        if artista1.pais and artista2.pais:
-            mismo_pais = artista1.pais.lower() == artista2.pais.lower()
-            comparaciones.append({
-                "atributo": "País",
-                "artista1": artista1.pais,
-                "artista2": artista2.pais,
-                "coincide": mismo_pais,
-                "puntuacion": 30 if mismo_pais else 0
-            })
-        else:
-            comparaciones.append({
-                "atributo": "País",
-                "artista1": artista1.pais or "No definido",
-                "artista2": artista2.pais or "No definido",
-                "coincide": "No comparable",
-                "puntuacion": 15
-            })
-
-        # 3. Comparar popularidad (diferencia porcentual)
-        diff_popularidad = abs(artista1.popularidad - artista2.popularidad)
-        similitud_popularidad = max(0, 100 - diff_popularidad) * 0.2  # 20% del total
-
-        comparaciones.append({
-            "atributo": "Popularidad",
-            "artista1": f"{artista1.popularidad}/100",
-            "artista2": f"{artista2.popularidad}/100",
-            "diferencia": diff_popularidad,
-            "puntuacion": round(similitud_popularidad, 1)
-        })
-
-        # 4. Contar canciones de cada artista
-        canciones_artista1 = session.exec(
-            select(Cancion).where(
-                (Cancion.deleted_at == None) &
-                (Cancion.artista.ilike(f"%{artista1.nombre}%"))
-            )
+        canciones = session.exec(
+            select(Cancion).where(Cancion.deleted_at == None)
         ).all()
 
-        canciones_artista2 = session.exec(
-            select(Cancion).where(
-                (Cancion.deleted_at == None) &
-                (Cancion.artista.ilike(f"%{artista2.nombre}%"))
-            )
+        artistas = session.exec(
+            select(Artista).where(Artista.deleted_at == None)
         ).all()
 
-        comparaciones.append({
-            "atributo": "Canciones en sistema",
-            "artista1": len(canciones_artista1),
-            "artista2": len(canciones_artista2),
-            "coincide": len(canciones_artista1) > 0 and len(canciones_artista2) > 0,
-            "puntuacion": 10 if (len(canciones_artista1) > 0 and len(canciones_artista2) > 0) else 0
+        return templates.TemplateResponse("comparacion/seleccionar.html", {
+            "request": request,
+            "canciones": canciones,
+            "artistas": artistas
         })
 
-        # Calcular puntuación total
-        puntuacion_total = sum(comp["puntuacion"] for comp in comparaciones)
-        max_puntuacion = 100
-        porcentaje_similitud = round((puntuacion_total / max_puntuacion) * 100, 1)
-
-        # Determinar nivel de similitud
-        if porcentaje_similitud > 75:
-            nivel = "🎯 MUY SIMILARES"
-            explicacion = "Artistas muy parecidos en características"
-        elif porcentaje_similitud > 50:
-            nivel = "✅ SIMILARES"
-            explicacion = "Artistas con varias características en común"
-        elif porcentaje_similitud > 25:
-            nivel = "⚠️ POCO SIMILARES"
-            explicacion = "Algunas similitudes, pero muchas diferencias"
-        else:
-            nivel = "❌ MUY DIFERENTES"
-            explicacion = "Artistas con características muy distintas"
-
-        return {
-            "artista1": {
-                "id": artista1.id,
-                "nombre": artista1.nombre,
-                "genero_principal": artista1.genero_principal,
-                "pais": artista1.pais,
-                "popularidad": artista1.popularidad,
-                "total_canciones": len(canciones_artista1),
-                "imagen_url": artista1.imagen_url
-            },
-            "artista2": {
-                "id": artista2.id,
-                "nombre": artista2.nombre,
-                "genero_principal": artista2.genero_principal,
-                "pais": artista2.pais,
-                "popularidad": artista2.popularidad,
-                "total_canciones": len(canciones_artista2),
-                "imagen_url": artista2.imagen_url
-            },
-            "comparacion": {
-                "porcentaje_similitud": porcentaje_similitud,
-                "nivel": nivel,
-                "explicacion": explicacion,
-                "puntuacion_total": round(puntuacion_total, 1),
-                "max_puntuacion": max_puntuacion,
-                "detalles": comparaciones
-            },
-            "recomendacion": self._generar_recomendacion_artistas(artista1, artista2, porcentaje_similitud)
-        }
-
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error comparando artistas locales: {e}")
-        raise HTTPException(500, "Error en comparación")
+        logger.error(f"Error cargando página comparación: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": f"Error cargando elementos para comparar: {str(e)}"
+        })
 
+@router.get("/canciones/{cancion1_id}/{cancion2_id}", response_class=HTMLResponse)
+async def comparar_canciones_locales_html(
+    request: Request,
+    cancion1_id: str,
+    cancion2_id: str,
+    session: Session = Depends(get_session)
+):
+    """Comparar canciones locales (HTML)"""
+    try:
+        resultado = await comparar_canciones_locales(cancion1_id, cancion2_id, session)
+        return templates.TemplateResponse("comparacion/comparar_canciones.html", {
+            "request": request,
+            "comparacion": resultado
+        })
 
-def _generar_recomendacion_artistas(artista1, artista2, similitud):
-    if similitud > 75:
-        return f"¡{artista1.nombre} y {artista2.nombre} son muy similares! Podrían colaborar."
-    elif similitud > 50:
-        return f"{artista1.nombre} y {artista2.nombre} comparten características. Buen match."
-    elif similitud > 25:
-        return f"Algunas similitudes entre {artista1.nombre} y {artista2.nombre}, pero son distintos."
-    else:
-        return f"{artista1.nombre} y {artista2.nombre} son bastante diferentes entre sí."
+    except HTTPException as e:
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": e.detail
+        })
+    except Exception as e:
+        logger.error(f"Error comparando canciones HTML: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": f"Error comparando canciones: {str(e)}"
+        })
 
+@router.get("/artistas/{artista1_id}/{artista2_id}", response_class=HTMLResponse)
+async def comparar_artistas_locales_html(
+    request: Request,
+    artista1_id: int,
+    artista2_id: int,
+    session: Session = Depends(get_session)
+):
+    """Comparar artistas locales (HTML)"""
+    try:
+        resultado = await comparar_artistas_locales(artista1_id, artista2_id, session)
+        return templates.TemplateResponse("comparacion/comparar_artistas.html", {
+            "request": request,
+            "comparacion": resultado
+        })
 
-@router.get("/canciones/{cancion1_id}/{cancion2_id}")
+    except HTTPException as e:
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": e.detail
+        })
+    except Exception as e:
+        logger.error(f"Error comparando artistas HTML: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": f"Error comparando artistas: {str(e)}"
+        })
+
+@router.get("/cancion/{cancion_id}/seleccionar", response_class=HTMLResponse)
+async def seleccionar_cancion_comparar(
+    request: Request,
+    cancion_id: str,
+    session: Session = Depends(get_session)
+):
+    """Seleccionar otra canción para comparar"""
+    try:
+        cancion_base = session.get(Cancion, cancion_id)
+        if not cancion_base or cancion_base.deleted_at:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error": "Canción no encontrada"
+            })
+
+        canciones = session.exec(
+            select(Cancion).where(
+                (Cancion.deleted_at == None) &
+                (Cancion.id != cancion_id)
+            )
+        ).all()
+
+        return templates.TemplateResponse("comparacion/seleccionar_cancion.html", {
+            "request": request,
+            "cancion_base": cancion_base,
+            "canciones": canciones
+        })
+
+    except Exception as e:
+        logger.error(f"Error seleccionando canción: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": f"Error: {str(e)}"
+        })
+
+# ========== FUNCIONES DE COMPARACIÓN (ORIGINALES) ==========
+
 async def comparar_canciones_locales(
-        cancion1_id: str,
-        cancion2_id: str,
-        session: Session = Depends(get_session)
+    cancion1_id: str,
+    cancion2_id: str,
+    session: Session
 ):
     """Compara dos canciones locales entre sí"""
     try:
@@ -210,7 +172,6 @@ async def comparar_canciones_locales(
 
         # 2. Comparar tempo (20 puntos)
         tempo_diff = abs(cancion1.tempo - cancion2.tempo)
-        # Menos de 10 BPM de diferencia = 20 puntos, más de 50 BPM = 0 puntos
         similitud_tempo = max(0, 20 - (tempo_diff / 50 * 20))
         comparaciones.append({
             "atributo": "Tempo (BPM)",
@@ -322,7 +283,7 @@ async def comparar_canciones_locales(
             explicacion = "Canciones con características distintas"
 
         # Generar insight
-        insight = self._generar_insight_canciones(cancion1, cancion2, comparaciones)
+        insight = _generar_insight_canciones(cancion1, cancion2, comparaciones)
 
         return {
             "cancion1": {
@@ -364,6 +325,157 @@ async def comparar_canciones_locales(
         logger.error(f"Error comparando canciones locales: {e}")
         raise HTTPException(500, "Error en comparación")
 
+async def comparar_artistas_locales(
+    artista1_id: int,
+    artista2_id: int,
+    session: Session
+):
+    """Compara dos artistas locales entre sí"""
+    try:
+        await asyncio.sleep(0.01)
+
+        # Obtener ambos artistas
+        artista1 = session.get(Artista, artista1_id)
+        artista2 = session.get(Artista, artista2_id)
+
+        if not artista1 or artista1.deleted_at:
+            raise HTTPException(404, f"Artista 1 (ID: {artista1_id}) no encontrado")
+        if not artista2 or artista2.deleted_at:
+            raise HTTPException(404, f"Artista 2 (ID: {artista2_id}) no encontrado")
+
+        # Comparar atributos
+        comparaciones = []
+
+        # 1. Comparar género
+        if artista1.genero_principal and artista2.genero_principal:
+            mismo_genero = artista1.genero_principal.lower() == artista2.genero_principal.lower()
+            comparaciones.append({
+                "atributo": "Género principal",
+                "artista1": artista1.genero_principal,
+                "artista2": artista2.genero_principal,
+                "coincide": mismo_genero,
+                "puntuacion": 50 if mismo_genero else 0
+            })
+        else:
+            comparaciones.append({
+                "atributo": "Género principal",
+                "artista1": artista1.genero_principal or "No definido",
+                "artista2": artista2.genero_principal or "No definido",
+                "coincide": "No comparable",
+                "puntuacion": 25
+            })
+
+        # 2. Comparar país
+        if artista1.pais and artista2.pais:
+            mismo_pais = artista1.pais.lower() == artista2.pais.lower()
+            comparaciones.append({
+                "atributo": "País",
+                "artista1": artista1.pais,
+                "artista2": artista2.pais,
+                "coincide": mismo_pais,
+                "puntuacion": 30 if mismo_pais else 0
+            })
+        else:
+            comparaciones.append({
+                "atributo": "País",
+                "artista1": artista1.pais or "No definido",
+                "artista2": artista2.pais or "No definido",
+                "coincide": "No comparable",
+                "puntuacion": 15
+            })
+
+        # 3. Comparar popularidad (diferencia porcentual)
+        diff_popularidad = abs(artista1.popularidad - artista2.popularidad)
+        similitud_popularidad = max(0, 100 - diff_popularidad) * 0.2  # 20% del total
+
+        comparaciones.append({
+            "atributo": "Popularidad",
+            "artista1": f"{artista1.popularidad}/100",
+            "artista2": f"{artista2.popularidad}/100",
+            "diferencia": diff_popularidad,
+            "puntuacion": round(similitud_popularidad, 1)
+        })
+
+        # 4. Contar canciones de cada artista
+        from sqlmodel import select
+        canciones_artista1 = session.exec(
+            select(Cancion).where(
+                (Cancion.deleted_at == None) &
+                (Cancion.artista.ilike(f"%{artista1.nombre}%"))
+            )
+        ).all()
+
+        canciones_artista2 = session.exec(
+            select(Cancion).where(
+                (Cancion.deleted_at == None) &
+                (Cancion.artista.ilike(f"%{artista2.nombre}%"))
+            )
+        ).all()
+
+        comparaciones.append({
+            "atributo": "Canciones en sistema",
+            "artista1": len(canciones_artista1),
+            "artista2": len(canciones_artista2),
+            "coincide": len(canciones_artista1) > 0 and len(canciones_artista2) > 0,
+            "puntuacion": 10 if (len(canciones_artista1) > 0 and len(canciones_artista2) > 0) else 0
+        })
+
+        # Calcular puntuación total
+        puntuacion_total = sum(comp["puntuacion"] for comp in comparaciones)
+        max_puntuacion = 100
+        porcentaje_similitud = round((puntuacion_total / max_puntuacion) * 100, 1)
+
+        # Determinar nivel de similitud
+        if porcentaje_similitud > 75:
+            nivel = "🎯 MUY SIMILARES"
+            explicacion = "Artistas muy parecidos en características"
+        elif porcentaje_similitud > 50:
+            nivel = "✅ SIMILARES"
+            explicacion = "Artistas con varias características en común"
+        elif porcentaje_similitud > 25:
+            nivel = "⚠️ POCO SIMILARES"
+            explicacion = "Algunas similitudes, pero muchas diferencias"
+        else:
+            nivel = "❌ MUY DIFERENTES"
+            explicacion = "Artistas con características muy distintas"
+
+        recomendacion = _generar_recomendacion_artistas(artista1, artista2, porcentaje_similitud)
+
+        return {
+            "artista1": {
+                "id": artista1.id,
+                "nombre": artista1.nombre,
+                "genero_principal": artista1.genero_principal,
+                "pais": artista1.pais,
+                "popularidad": artista1.popularidad,
+                "total_canciones": len(canciones_artista1),
+                "imagen_url": artista1.imagen_url
+            },
+            "artista2": {
+                "id": artista2.id,
+                "nombre": artista2.nombre,
+                "genero_principal": artista2.genero_principal,
+                "pais": artista2.pais,
+                "popularidad": artista2.popularidad,
+                "total_canciones": len(canciones_artista2),
+                "imagen_url": artista2.imagen_url
+            },
+            "comparacion": {
+                "porcentaje_similitud": porcentaje_similitud,
+                "nivel": nivel,
+                "explicacion": explicacion,
+                "puntuacion_total": round(puntuacion_total, 1),
+                "max_puntuacion": max_puntuacion,
+                "detalles": comparaciones
+            },
+            "recomendacion": recomendacion
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error comparando artistas locales: {e}")
+        raise HTTPException(500, "Error en comparación")
 
 def _generar_insight_canciones(cancion1, cancion2, comparaciones):
     """Genera un insight basado en la comparación"""
@@ -395,28 +507,54 @@ def _generar_insight_canciones(cancion1, cancion2, comparaciones):
 
     return ". ".join(insights) + "."
 
+def _generar_recomendacion_artistas(artista1, artista2, similitud):
+    if similitud > 75:
+        return f"¡{artista1.nombre} y {artista2.nombre} son muy similares! Podrían colaborar."
+    elif similitud > 50:
+        return f"{artista1.nombre} y {artista2.nombre} comparten características. Buen match."
+    elif similitud > 25:
+        return f"Algunas similitudes entre {artista1.nombre} y {artista2.nombre}, pero son distintos."
+    else:
+        return f"{artista1.nombre} y {artista2.nombre} son bastante diferentes entre sí."
 
-@router.get("/artista-con-spotify/{artista_id}")
-async def comparar_artista_con_spotify(
-        artista_id: int,
-        session: Session = Depends(get_session)
+# ========== ENDPOINTS ORIGINALES (JSON) ==========
+
+@router.get("/api/artistas/{artista1_id}/{artista2_id}")
+async def comparar_artistas_locales_api(
+    artista1_id: int,
+    artista2_id: int,
+    session: Session = Depends(get_session)
 ):
-    """Wrapper para el endpoint existente de comparación con Spotify"""
-    # Este endpoint ya existe en comparar_spotify.py
-    # Solo redirigimos o mostramos mensaje
+    """API: Comparar artistas locales (JSON) - ORIGINAL"""
+    return await comparar_artistas_locales(artista1_id, artista2_id, session)
+
+@router.get("/api/canciones/{cancion1_id}/{cancion2_id}")
+async def comparar_canciones_locales_api(
+    cancion1_id: str,
+    cancion2_id: str,
+    session: Session = Depends(get_session)
+):
+    """API: Comparar canciones locales (JSON) - ORIGINAL"""
+    return await comparar_canciones_locales(cancion1_id, cancion2_id, session)
+
+@router.get("/api/artista-con-spotify/{artista_id}")
+async def comparar_artista_con_spotify(
+    artista_id: int,
+    session: Session = Depends(get_session)
+):
+    """API: Wrapper para comparación con Spotify"""
     return {
         "message": "Usa el endpoint /comparar/artista/{id} para comparar con Spotify",
         "endpoint": f"/comparar/artista/{artista_id}",
         "descripcion": "Compara tu artista local con artistas similares en Spotify"
     }
 
-
-@router.get("/cancion-con-spotify/{cancion_id}")
+@router.get("/api/cancion-con-spotify/{cancion_id}")
 async def comparar_cancion_con_spotify(
-        cancion_id: str,
-        session: Session = Depends(get_session)
+    cancion_id: str,
+    session: Session = Depends(get_session)
 ):
-    """Wrapper para el endpoint existente de comparación con Spotify"""
+    """API: Wrapper para comparación con Spotify"""
     return {
         "message": "Usa el endpoint /comparar/cancion/{id} para comparar con Spotify",
         "endpoint": f"/comparar/cancion/{cancion_id}",

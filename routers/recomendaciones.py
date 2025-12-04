@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from sqlmodel import Session, select, func
 from database import get_session
 from models import Cancion, Artista, Benchmark, AnalisisResultado
@@ -9,6 +11,106 @@ import asyncio
 router = APIRouter(prefix="/recomendaciones", tags=["Recomendaciones"])
 logger = logging.getLogger(__name__)
 
+# Templates para HTML
+templates = Jinja2Templates(directory="templates")
+
+
+# ========== ENDPOINTS HTML ==========
+
+@router.get("/cancion/{cancion_id}/html", response_class=HTMLResponse)
+async def recomendar_similares_html(
+        request: Request,
+        cancion_id: str,
+        session: Session = Depends(get_session)
+):
+    """Recomendaciones de canciones similares (HTML)"""
+    try:
+        data = await recomendar_similares(cancion_id, 5, session)
+        return templates.TemplateResponse("recomendaciones/cancion.html", {
+            "request": request,
+            "cancion_base": data["cancion_base"],
+            "total_canciones_analizadas": data["total_canciones_analizadas"],
+            "recomendaciones": data["recomendaciones"],
+            "mensaje": data.get("mensaje")
+        })
+    except Exception as e:
+        logger.error(f"Error HTML recomendaciones canción {cancion_id}: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": f"No se pudieron generar recomendaciones: {str(e)[:100]}"
+        })
+
+
+@router.get("/artista/{artista_id}/html", response_class=HTMLResponse)
+async def recomendar_artistas_similares_html(
+        request: Request,
+        artista_id: int,
+        session: Session = Depends(get_session)
+):
+    """Recomendaciones de artistas similares (HTML)"""
+    try:
+        data = await recomendar_artistas_similares(artista_id, 5, session)
+        return templates.TemplateResponse("recomendaciones/artista.html", {
+            "request": request,
+            "artista_base": data["artista_base"],
+            "recomendaciones": data["recomendaciones"],
+            "mensaje": data.get("mensaje")
+        })
+    except Exception as e:
+        logger.error(f"Error HTML recomendaciones artista {artista_id}: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": f"No se pudieron generar recomendaciones: {str(e)[:100]}"
+        })
+
+
+@router.get("/descubrimiento/html", response_class=HTMLResponse)
+async def canciones_descubrimiento_html(
+        request: Request,
+        session: Session = Depends(get_session)
+):
+    """Canciones de descubrimiento (HTML)"""
+    try:
+        data = await canciones_descubrimiento(session, 6)
+        return templates.TemplateResponse("recomendaciones/descubrimiento.html", {
+            "request": request,
+            "tipo": data["tipo"],
+            "descripcion": data["descripcion"],
+            "total_candidatas": data.get("total_candidatas"),
+            "canciones": data["canciones"]
+        })
+    except Exception as e:
+        logger.error(f"Error HTML descubrimiento: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": f"Error en descubrimiento: {str(e)[:100]}"
+        })
+
+
+@router.get("/para-benchmark/{benchmark_id}/html", response_class=HTMLResponse)
+async def recomendar_para_benchmark_html(
+        request: Request,
+        benchmark_id: int,
+        session: Session = Depends(get_session)
+):
+    """Recomendaciones para benchmark (HTML)"""
+    try:
+        data = await recomendar_para_benchmark(benchmark_id, session, 5)
+        return templates.TemplateResponse("recomendaciones/benchmark.html", {
+            "request": request,
+            "benchmark": data["benchmark"],
+            "total_canciones_analizadas": data["total_canciones_analizadas"],
+            "canciones_recomendadas": data["canciones_recomendadas"]
+        })
+    except Exception as e:
+        logger.error(f"Error HTML benchmark {benchmark_id}: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": f"Error generando recomendaciones: {str(e)[:100]}"
+        })
+
+
+# ========== FUNCIONES AUXILIARES ==========
 
 def _generar_razon_recomendacion(base, candidato, similitud):
     razones = []
@@ -51,6 +153,8 @@ def _generar_razon_artista(base, candidato, similitud):
         return ", ".join(razones)
     return "Alguna similitud encontrada"
 
+
+# ========== ENDPOINTS ORIGINALES (JSON) ==========
 
 @router.get("/cancion/{cancion_id}")
 async def recomendar_similares(

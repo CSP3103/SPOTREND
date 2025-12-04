@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Restaurar Elementos Eliminados - Spotrend{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0"><i class="fas fa-redo"></i> Restaurar Elementos Eliminados</h2>
+            </div>
+
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-database fa-4x text-success mb-3"></i>
+                    <h3>Restaurar elementos eliminados</h3>
+                    <p class="text-muted">Selecciona qué elementos restaurar</p>
+                </div>
+
+                <!-- Resumen de elementos a restaurar -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h2 class="text-primary">{{ stats.canciones }}</h2>
+                                <p class="text-muted">Canciones</p>
+                                {% if stats.canciones > 0 %}
+                                <form method="POST" action="/eliminados/canciones/restaurar-todas" class="mt-2">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-redo"></i> Restaurar Solo Canciones
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="badge badge-secondary">No hay canciones</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h2 class="text-success">{{ stats.artistas }}</h2>
+                                <p class="text-muted">Artistas</p>
+                                {% if stats.artistas > 0 %}
+                                <form method="POST" action="/eliminados/artistas/restaurar-todos" class="mt-2">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-redo"></i> Restaurar Solo Artistas
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="badge badge-secondary">No hay artistas</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h2 class="text-warning">{{ stats.benchmarks }}</h2>
+                                <p class="text-muted">Benchmarks</p>
+                                {% if stats.benchmarks > 0 %}
+                                <form method="POST" action="/eliminados/benchmarks/restaurar-todos" class="mt-2">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-redo"></i> Restaurar Solo Benchmarks
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="badge badge-secondary">No hay benchmarks</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if stats.canciones > 0 or stats.artistas > 0 or stats.benchmarks > 0 %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Restaurar Todo</strong> - Esta acción restaurará TODOS los elementos eliminados
+                </div>
+
+                <form method="POST" action="/eliminados/restaurar-todos" class="mt-4">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-redo"></i> Restaurar Todo ({{ stats.canciones + stats.artistas + stats.benchmarks }} elementos)
+                        </button>
+
+                        <a href="/eliminados" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    No hay elementos eliminados para restaurar
+                </div>
+                <div class="d-grid gap-2">
+                    <a href="/dashboard" class="btn btn-primary">
+                        <i class="fas fa-tachometer-alt"></i> Ir al Dashboard
+                    </a>
+                    <a href="/eliminados" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Eliminados
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="card-footer text-center">
+                <p class="text-muted mb-0">
+                    <i class="fas fa-history"></i>
+                    Los elementos restaurados volverán a sus secciones correspondientes
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.d-grid {
+    display: grid;
+}
+</style>
+{% endblock %}

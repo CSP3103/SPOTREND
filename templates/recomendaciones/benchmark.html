@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Recomendaciones para {{ benchmark }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-chart-bar"></i> Recomendaciones para: {{ benchmark }}</h1>
+    <p class="lead">Canciones ideales basadas en métricas del benchmark</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-music"></i> Canciones Recomendadas</h2>
+        <span class="badge badge-primary">Analizadas: {{ total_canciones_analizadas }}</span>
+    </div>
+    <div class="card-body">
+        {% if canciones_recomendadas %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Canción</th>
+                        <th>Afinidad</th>
+                        <th>Métricas Comparadas</th>
+                        <th>Explicación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cancion in canciones_recomendadas %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if cancion.cancion.imagen_url %}
+                                <img src="{{ cancion.cancion.imagen_url }}" alt="{{ cancion.cancion.nombre }}"
+                                     style="width: 50px; height: 50px; border-radius: 5px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                    <strong>{{ cancion.cancion.nombre }}</strong>
+                                    <div class="text-muted">{{ cancion.cancion.artista }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="affinity-score">
+                                <div class="score-circle"
+                                     style="background: {{ cancion.afinidad_con_benchmark|score_color }};">
+                                    {{ cancion.afinidad_con_benchmark }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.85rem;">
+                                <div>
+                                    <strong>Tempo:</strong> {{ cancion.metricas_comparadas.tempo_cancion }} BPM
+                                    (benchmark: {{ cancion.metricas_comparadas.tempo_benchmark }} BPM)
+                                </div>
+                                <div>
+                                    <strong>Energy:</strong> {{ cancion.metricas_comparadas.energy_cancion|round(2) }}
+                                    (benchmark: {{ cancion.metricas_comparadas.energy_benchmark|round(2) }})
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ cancion.explicacion }}</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="/canciones/{{ cancion.cancion.id }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="/analisis-v2/cancion/{{ cancion.cancion.id }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                </a>
+                                <button class="btn btn-sm btn-success"
+                                        onclick="showMetrics('{{ cancion.cancion.id }}')">
+                                    <i class="fas fa-balance-scale"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+            <h3>No se encontraron canciones ideales para este benchmark</h3>
+            <p class="text-muted">Agrega más canciones o ajusta los criterios del benchmark</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Sobre los Benchmarks</h3>
+            </div>
+            <div class="card-body">
+                <p>Los benchmarks representan promedios de género y región:</p>
+                <ul>
+                    <li><strong>Género Musical:</strong> Características promedio del género</li>
+                    <li><strong>Región/País:</strong> Tendencias musicales locales</li>
+                    <li><strong>Tempo Promedio:</strong> Velocidad característica</li>
+                    <li><strong>Energy Promedio:</strong> Nivel de energía típico</li>
+                </ul>
+                <p class="mb-0">Las canciones con afinidad >60% son consideradas ideales</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-calculator"></i> Cálculo de Afinidad</h3>
+            </div>
+            <div class="card-body">
+                <div class="formula-box">
+                    <code>Afinidad = 100 - Distancia</code>
+                    <div class="mt-2">
+                        <code>Distancia = (|ΔTempo|/200 × 100 × 0.5) + (|ΔEnergy| × 100 × 0.5)</code>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <p><strong>Donde:</strong></p>
+                    <ul style="font-size: 0.9rem;">
+                        <li>ΔTempo: Diferencia en BPM con el benchmark</li>
+                        <li>ΔEnergy: Diferencia en energía con el benchmark</li>
+                        <li>/200: Normalización del tempo (máximo 200 BPM)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.affinity-score {
+    display: flex;
+    justify-content: center;
+}
+
+.score-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.formula-box {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+</style>
+
+<script>
+function showMetrics(cancionId) {
+    // Esta función puede expandirse para mostrar métricas detalladas
+    alert('Métricas detalladas para canción ID: ' + cancionId);
+}
+</script>
+{% endblock %}

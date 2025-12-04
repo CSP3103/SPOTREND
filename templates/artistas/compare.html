@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Comparar {{ artista.nombre }} - Spotify{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fab fa-spotify"></i> Comparar con Spotify: {{ artista.nombre }}</h1>
+    <a href="/artistas/{{ artista.id }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2><i class="fas fa-user"></i> Artista Local</h2>
+            </div>
+            <div class="card-body text-center">
+                {% if artista.imagen_url %}
+                <img src="{{ artista.imagen_url }}" alt="{{ artista.nombre }}" 
+                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;">
+                {% else %}
+                <div style="width: 120px; height: 120px; background: #f0f0f0; border-radius: 50%; 
+                            display: flex; align-items: center; justify-content: center; color: #999; margin: 0 auto 15px;">
+                    <i class="fas fa-user fa-3x"></i>
+                </div>
+                {% endif %}
+                
+                <h3>{{ artista.nombre }}</h3>
+                
+                <div class="artist-details mt-3">
+                    <div class="detail-item">
+                        <strong>País:</strong> {{ artista.pais or 'No especificado' }}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Género:</strong> {{ artista.genero_principal or 'No especificado' }}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Popularidad:</strong> {{ artista.popularidad }}%
+                    </div>
+                    <div class="detail-item">
+                        <strong>ID:</strong> <code>{{ artista.id }}</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-search"></i> Buscar en Spotify</h2>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="/spotify/info/buscar-artista" class="text-center">
+                    <input type="hidden" name="nombre" value="{{ artista.nombre }}">
+                    <button type="submit" class="btn btn-spotify btn-lg">
+                        <i class="fab fa-spotify"></i> Buscar "{{ artista.nombre }}" en Spotify
+                    </button>
+                </form>
+                
+                <hr>
+                
+                <form method="GET" action="/comparar/artista/{{ artista.id }}" class="mt-3">
+                    <div class="form-group">
+                        <label>Comparación Automática</label>
+                        <button type="submit" class="btn btn-info btn-block">
+                            <i class="fas fa-robot"></i> Ejecutar Comparación Automática
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h2><i class="fab fa-spotify"></i> Resultados de Spotify</h2>
+            </div>
+            <div class="card-body">
+                <div class="text-center py-4">
+                    <i class="fab fa-spotify fa-4x text-success mb-3"></i>
+                    <h3>Comparación con Spotify</h3>
+                    <p class="text-muted">
+                        Busca información en tiempo real de la API de Spotify para comparar 
+                        con tu artista local.
+                    </p>
+                    
+                    <div class="mt-4">
+                        <h4>¿Cómo funciona?</h4>
+                        <ol class="text-left" style="display: inline-block; text-align: left;">
+                            <li>Spotrend se conecta a la API oficial de Spotify</li>
+                            <li>Busca artistas con nombre similar</li>
+                            <li>Compara género, popularidad y país</li>
+                            <li>Muestra similitudes y diferencias</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Instrucciones:</strong> 
+                    Haz clic en "Buscar en Spotify" para encontrar artistas similares 
+                    o ejecuta la comparación automática.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-code"></i> Endpoints de Comparación</h2>
+            </div>
+            <div class="card-body">
+                <div class="api-endpoints">
+                    <div class="endpoint-item">
+                        <code>GET /comparar/artista/{{ artista.id }}</code>
+                        <span>Comparación automática con Spotify</span>
+                    </div>
+                    
+                    <div class="endpoint-item">
+                        <code>GET /spotify/buscar-artista/{{ artista.nombre }}</code>
+                        <span>Buscar artistas en Spotify por nombre</span>
+                    </div>
+                    
+                    <div class="endpoint-item">
+                        <code>GET /comparacion-local/artistas/{{ artista.id }}/comparar</code>
+                        <span>Comparar con otros artistas locales</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-cogs"></i> Métricas de Comparación</h2>
+            </div>
+            <div class="card-body">
+                <p>La comparación analiza:</p>
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="metric">
+                            <i class="fas fa-font fa-2x text-primary"></i>
+                            <div>Nombre</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric">
+                            <i class="fas fa-music fa-2x text-success"></i>
+                            <div>Género</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric">
+                            <i class="fas fa-chart-line fa-2x text-warning"></i>
+                            <div>Popularidad</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric">
+                            <i class="fas fa-globe fa-2x text-info"></i>
+                            <div>País/Región</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.artist-details {
+    text-align: left;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.detail-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.api-endpoints {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.endpoint-item {
+    background: #f8f9fa;
+    padding: 12px 15px;
+    border-radius: 6px;
+    border-left: 4px solid #1DB954;
+    display: flex;
+    flex-direction: column;
+}
+
+.endpoint-item code {
+    background: #e9ecef;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.endpoint-item span {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.metric {
+    padding: 15px;
+}
+
+.metric i {
+    margin-bottom: 10px;
+}
+
+.metric div {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.btn-spotify {
+    background: #1DB954;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+}
+
+.btn-spotify:hover {
+    background: #1AA34A;
+    color: white;
+}
+</style>
+{% endblock %}

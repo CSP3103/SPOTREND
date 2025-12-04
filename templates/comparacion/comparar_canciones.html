@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Comparar Canciones - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-exchange-alt"></i> Comparar Canciones Locales</h1>
+    <a href="/canciones" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a Canciones
+    </a>
+</div>
+
+<div class="row">
+    <!-- Canción 1 -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-music"></i> Canción 1</h3>
+            </div>
+            <div class="card-body text-center">
+                {% if comparacion.cancion1.imagen_url %}
+                <img src="{{ comparacion.cancion1.imagen_url }}" 
+                     alt="{{ comparacion.cancion1.nombre }}"
+                     style="width: 150px; height: 150px; border-radius: 10px; object-fit: cover; margin-bottom: 20px;">
+                {% else %}
+                <div style="width: 150px; height: 150px; background: #f0f0f0; border-radius: 10px;
+                            display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="fas fa-music fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <h4>{{ comparacion.cancion1.nombre }}</h4>
+                <p class="text-muted">{{ comparacion.cancion1.artista }}</p>
+                
+                <div class="song-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <div>
+                            <h5>{{ comparacion.cancion1.tempo }}</h5>
+                            <small>BPM</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-bolt"></i>
+                        <div>
+                            <h5>{{ "%.3f"|format(comparacion.cancion1.energy) }}</h5>
+                            <small>Energy</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-heart"></i>
+                        <div>
+                            <h5>{{ comparacion.cancion1.danceability or "N/A" }}</h5>
+                            <small>Dance</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="/canciones/{{ comparacion.cancion1.id }}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resultado de Comparación -->
+    <div class="col-md-2 text-center">
+        <div class="comparison-result" style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+            <div class="similarity-circle">
+                <h1 class="display-3">{{ comparacion.comparacion.porcentaje_similitud }}%</h1>
+                <p class="text-muted">Similitud</p>
+            </div>
+            
+            <div class="mt-3">
+                <span class="badge badge-lg 
+                    {% if comparacion.comparacion.porcentaje_similitud > 80 %}badge-success
+                    {% elif comparacion.comparacion.porcentaje_similitud > 60 %}badge-warning
+                    {% elif comparacion.comparacion.porcentaje_similitud > 40 %}badge-info
+                    {% else %}badge-danger{% endif %}"
+                    style="font-size: 1.1rem;">
+                    {{ comparacion.comparacion.nivel }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Canción 2 -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fas fa-music"></i> Canción 2</h3>
+            </div>
+            <div class="card-body text-center">
+                {% if comparacion.cancion2.imagen_url %}
+                <img src="{{ comparacion.cancion2.imagen_url }}" 
+                     alt="{{ comparacion.cancion2.nombre }}"
+                     style="width: 150px; height: 150px; border-radius: 10px; object-fit: cover; margin-bottom: 20px;">
+                {% else %}
+                <div style="width: 150px; height: 150px; background: #f0f0f0; border-radius: 10px;
+                            display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="fas fa-music fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <h4>{{ comparacion.cancion2.nombre }}</h4>
+                <p class="text-muted">{{ comparacion.cancion2.artista }}</p>
+                
+                <div class="song-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <div>
+                            <h5>{{ comparacion.cancion2.tempo }}</h5>
+                            <small>BPM</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-bolt"></i>
+                        <div>
+                            <h5>{{ "%.3f"|format(comparacion.cancion2.energy) }}</h5>
+                            <small>Energy</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-heart"></i>
+                        <div>
+                            <h5>{{ comparacion.cancion2.danceability or "N/A" }}</h5>
+                            <small>Dance</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="/canciones/{{ comparacion.cancion2.id }}" class="btn btn-outline-success">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalles de la Comparación -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> Detalles de la Comparación</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">{{ comparacion.comparacion.explicacion }}</p>
+                
+                {% if comparacion.insight %}
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i> <strong>Insight:</strong> {{ comparacion.insight }}
+                </div>
+                {% endif %}
+                
+                <h5>Métricas Comparadas:</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Atributo</th>
+                                <th>Canción 1</th>
+                                <th>Canción 2</th>
+                                <th>Diferencia</th>
+                                <th>Puntuación</th>
+                                <th>Peso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in comparacion.comparacion.detalles %}
+                            <tr>
+                                <td><strong>{{ detalle.atributo }}</strong></td>
+                                <td>{{ detalle.cancion1 }}</td>
+                                <td>{{ detalle.cancion2 }}</td>
+                                <td>
+                                    {% if detalle.diferencia is defined %}
+                                    {{ detalle.diferencia }}
+                                    {% elif detalle.coincide == true %}
+                                    <span class="badge badge-success">Igual</span>
+                                    {% elif detalle.coincide == false %}
+                                    <span class="badge badge-danger">Diferente</span>
+                                    {% else %}
+                                    {{ detalle.coincide }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-primary">{{ detalle.puntuacion }}</span>
+                                </td>
+                                <td><small>{{ detalle.peso }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5>Puntuación Total</h5>
+                                <h1 class="display-4 text-primary">
+                                    {{ comparacion.comparacion.puntuacion_total }}
+                                </h1>
+                                <p class="text-muted">
+                                    de {{ comparacion.comparacion.max_puntuacion }} puntos
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Interpretación:</h5>
+                                <ul>
+                                    {% if comparacion.comparacion.porcentaje_similitud > 80 %}
+                                    <li>🎵 Canciones muy similares en características</li>
+                                    <li>✅ Buenas para la misma playlist</li>
+                                    <li>🎯 Mismo artista o género</li>
+                                    {% elif comparacion.comparacion.porcentaje_similitud > 60 %}
+                                    <li>✅ Características similares</li>
+                                    <li>🎵 Podrían funcionar juntas</li>
+                                    <li>⚠️ Algunas diferencias notables</li>
+                                    {% elif comparacion.comparacion.porcentaje_similitud > 40 %}
+                                    <li>⚠️ Similitudes moderadas</li>
+                                    <li>🎵 Diferencias en tempo o energy</li>
+                                    <li>📊 Distintos estilos musicales</li>
+                                    {% else %}
+                                    <li>❌ Características muy diferentes</li>
+                                    <li>🎵 Distintos géneros o artistas</li>
+                                    <li>⚠️ No recomendadas para misma playlist</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h2><i class="fas fa-bolt"></i> Acciones Relacionadas</h2>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <a href="/recomendaciones/cancion/{{ comparacion.cancion1.id }}" 
+                   class="btn btn-outline-primary btn-block">
+                    <i class="fas fa-star"></i> Recomendaciones para Canción 1
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/recomendaciones/cancion/{{ comparacion.cancion2.id }}" 
+                   class="btn btn-outline-success btn-block">
+                    <i class="fas fa-star"></i> Recomendaciones para Canción 2
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/comparar/cancion/{{ comparacion.cancion1.id }}" 
+                   class="btn btn-outline-warning btn-block">
+                    <i class="fab fa-spotify"></i> Comparar Canción 1 con Spotify
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.similarity-circle {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+}
+
+.song-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.stat-item i {
+    font-size: 1.5rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.stat-item h5 {
+    margin: 5px 0;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

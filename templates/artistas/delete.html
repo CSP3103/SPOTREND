@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Eliminar {{ artista.nombre }} - Spotrend{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h2 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h2>
+            </div>
+            
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-trash fa-4x text-danger mb-3"></i>
+                    <h3>¿Estás seguro de eliminar este artista?</h3>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle"></i> Esta acción no se puede deshacer
+                </div>
+                
+                <div class="artist-info p-3 mb-4" style="background: #f8f9fa; border-radius: 5px;">
+                    {% if artista.imagen_url %}
+                    <img src="{{ artista.imagen_url }}" alt="{{ artista.nombre }}" 
+                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
+                    {% endif %}
+                    <h4>{{ artista.nombre }}</h4>
+                    <div class="d-flex justify-content-center gap-2 mb-2">
+                        {% if artista.pais %}
+                        <span class="badge badge-info">{{ artista.pais }}</span>
+                        {% endif %}
+                        {% if artista.genero_principal %}
+                        <span class="badge badge-success">{{ artista.genero_principal }}</span>
+                        {% endif %}
+                        <span class="badge badge-warning">{{ artista.popularidad }}%</span>
+                    </div>
+                    <p class="text-muted">ID: {{ artista.id }}</p>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Nota:</strong> El artista se marcará como eliminado (soft delete) 
+                    y podrá restaurarse desde la sección de eliminados.
+                </div>
+                
+                <form method="POST" action="/artistas/{{ artista.id }}" class="mt-4">
+                    <input type="hidden" name="_method" value="DELETE">
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-trash"></i> Sí, Eliminar Artista
+                        </button>
+                        
+                        <a href="/artistas/{{ artista.id }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card-footer text-center">
+                <p class="text-muted mb-0">
+                    <i class="fas fa-shield-alt"></i> 
+                    Esta acción es reversible desde <a href="/eliminados/artistas">/eliminados/artistas</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.artist-info {
+    transition: all 0.3s;
+}
+
+.artist-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.d-grid {
+    display: grid;
+}
+</style>
+{% endblock %}

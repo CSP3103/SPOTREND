@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Recomendaciones - {{ cancion_base.nombre }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        {% if cancion_base.imagen_url %}
+        <img src="{{ cancion_base.imagen_url }}" alt="{{ cancion_base.nombre }}"
+             style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;">
+        {% endif %}
+        <div>
+            <h1>Recomendaciones para: {{ cancion_base.nombre }}</h1>
+            <p class="lead">{{ cancion_base.artista }}</p>
+            <div>
+                <span class="badge badge-info">{{ cancion_base.tempo }} BPM</span>
+                <span class="badge badge-success">{{ cancion_base.energy|round(2) }} Energy</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if mensaje %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> {{ mensaje }}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-star"></i> Canciones Similares</h2>
+        <span class="badge badge-primary">Analizadas: {{ total_canciones_analizadas }}</span>
+    </div>
+    <div class="card-body">
+        {% if recomendaciones %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Canción</th>
+                        <th>Similitud Total</th>
+                        <th>Métricas</th>
+                        <th>Razón</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in recomendaciones %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if rec.cancion.imagen_url %}
+                                <img src="{{ rec.cancion.imagen_url }}" alt="{{ rec.cancion.nombre }}"
+                                     style="width: 50px; height: 50px; border-radius: 5px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                    <strong>{{ rec.cancion.nombre }}</strong>
+                                    <div class="text-muted">{{ rec.cancion.artista }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="similarity-score">
+                                <div class="score-circle"
+                                     style="background: {{ rec.similitudes.total|score_color }};">
+                                    {{ rec.similitudes.total|round(1) }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.9rem;">
+                                <div>Tempo: {{ rec.similitudes.tempo }}%</div>
+                                <div>Energy: {{ rec.similitudes.energy }}%</div>
+                                {% if rec.similitudes.danceability %}
+                                <div>Danceability: {{ rec.similitudes.danceability }}%</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ rec.razon }}</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="/canciones/{{ rec.cancion.id }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="/analisis-v2/cancion/{{ rec.cancion.id }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                </a>
+                                <a href="/comparar/cancion/{{ rec.cancion.id }}" class="btn btn-sm btn-success">
+                                    <i class="fab fa-spotify"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h3>No se encontraron recomendaciones similares</h3>
+            <p class="text-muted">Intenta con otra canción o agrega más canciones a la base de datos</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Cómo se calculan</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>Tempo (30%):</strong> Diferencia en BPM entre canciones</li>
+                    <li><strong>Energy (30%):</strong> Nivel de energía musical</li>
+                    <li><strong>Danceability (20%):</strong> Qué tan bailable es</li>
+                    <li><strong>Valence (20%):</strong> Positividad musical</li>
+                </ul>
+                <p class="text-muted mb-0">Puntuación >80%: Muy similar | >60%: Similar | <40%: Poco similar</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+            </div>
+            <div class="card-body">
+                <a href="/canciones/{{ cancion_base.id }}" class="btn btn-primary btn-block mb-2">
+                    <i class="fas fa-info-circle"></i> Ver detalles de la canción base
+                </a>
+                <a href="/recomendaciones/descubrimiento" class="btn btn-warning btn-block mb-2">
+                    <i class="fas fa-compass"></i> Descubrir más canciones
+                </a>
+                <a href="/canciones" class="btn btn-secondary btn-block">
+                    <i class="fas fa-arrow-left"></i> Volver a canciones
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.similarity-score {
+    display: flex;
+    justify-content: center;
+}
+
+.score-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+}
+</style>
+{% endblock %}

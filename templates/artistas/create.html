@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Artista - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-plus-circle"></i> Crear Nuevo Artista</h1>
+    <a href="/artistas" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-edit"></i> Formulario de Creación</h2>
+    </div>
+    
+    <div class="card-body">
+        <form method="POST" action="/artistas/crear" enctype="multipart/form-data">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="nombre" class="form-label">
+                        <i class="fas fa-user"></i> Nombre del Artista *
+                    </label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                           required placeholder="Ej: Bad Bunny, Taylor Swift">
+                </div>
+                
+                <div class="form-group col-md-6">
+                    <label for="popularidad" class="form-label">
+                        <i class="fas fa-chart-line"></i> Popularidad *
+                    </label>
+                    <input type="number" class="form-control" id="popularidad" name="popularidad" 
+                           value="50" min="0" max="100" required>
+                    <small class="form-text">Rango: 0 - 100%</small>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="pais" class="form-label">
+                        <i class="fas fa-globe"></i> País
+                    </label>
+                    <input type="text" class="form-control" id="pais" name="pais" 
+                           placeholder="Ej: Puerto Rico, Estados Unidos">
+                </div>
+                
+                <div class="form-group col-md-6">
+                    <label for="genero_principal" class="form-label">
+                        <i class="fas fa-music"></i> Género Principal
+                    </label>
+                    <input type="text" class="form-control" id="genero_principal" name="genero_principal" 
+                           placeholder="Ej: Reggaeton, Pop, Rock">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="imagen" class="form-label">
+                    <i class="fas fa-image"></i> Imagen del Artista
+                </label>
+                <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*">
+                <small class="form-text">Formatos: JPG, PNG, GIF, WebP (opcional)</small>
+            </div>
+            
+            <div class="form-actions mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Guardar Artista
+                </button>
+                <button type="reset" class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> Limpiar
+                </button>
+                <a href="/artistas" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3><i class="fas fa-info-circle"></i> Información sobre los Campos</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h4><i class="fas fa-user text-primary"></i> Nombre del Artista</h4>
+                <p>Nombre completo o artístico del artista.</p>
+                <p><strong>Ejemplos:</strong></p>
+                <ul>
+                    <li>Bad Bunny</li>
+                    <li>Taylor Swift</li>
+                    <li>The Beatles</li>
+                    <li>Shakira</li>
+                </ul>
+            </div>
+            
+            <div class="col-md-6">
+                <h4><i class="fas fa-chart-line text-warning"></i> Popularidad</h4>
+                <p>Nivel de popularidad del artista en una escala de 0 a 100.</p>
+                <ul>
+                    <li><strong>0-30:</strong> Artista emergente/local</li>
+                    <li><strong>30-70:</strong> Artista conocido</li>
+                    <li><strong>70-100:</strong> Artista famoso/global</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <h4><i class="fas fa-globe text-success"></i> País</h4>
+                <p>País de origen del artista. Ayuda en análisis por región.</p>
+                <p><strong>Ejemplos:</strong> Puerto Rico, Colombia, Estados Unidos, Reino Unido</p>
+            </div>
+            
+            <div class="col-md-6">
+                <h4><i class="fas fa-music text-info"></i> Género Principal</h4>
+                <p>Género musical predominante del artista.</p>
+                <p><strong>Ejemplos:</strong> Reggaeton, Pop, Rock, Hip Hop, Salsa</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-footer">
+        <p><i class="fas fa-code"></i> <strong>Endpoint API equivalente:</strong> 
+           <code>POST /artistas/</code> (envía JSON en lugar de form)</p>
+        <p><i class="fab fa-spotify"></i> <strong>Comparar con Spotify:</strong> 
+           Una vez creado, podrás comparar con artistas similares en Spotify.</p>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3><i class="fab fa-spotify"></i> Integración con Spotify</h3>
+    </div>
+    <div class="card-body">
+        <p>Después de crear el artista, puedes:</p>
+        <ol>
+            <li><strong>Comparar con Spotify:</strong> Encuentra artistas similares en la plataforma</li>
+            <li><strong>Obtener información actualizada:</strong> Datos en tiempo real de Spotify API</li>
+            <li><strong>Analizar similitudes:</strong> Compara con otros artistas de tu biblioteca</li>
+            <li><strong>Generar recomendaciones:</strong> Basado en género, país y popularidad</li>
+        </ol>
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-lightbulb"></i>
+            <strong>Consejo:</strong> Completa todos los campos para obtener mejores 
+            comparaciones y recomendaciones.
+        </div>
+    </div>
+</div>
+{% endblock %}

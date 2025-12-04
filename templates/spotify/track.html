@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{{ info.track.nombre }} - Spotify{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        {% if info.album.imagen %}
+        <img src="{{ info.album.imagen }}" alt="{{ info.track.nombre }}"
+             style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;">
+        {% endif %}
+        <div>
+            <h1>{{ info.track.nombre }}</h1>
+            <h4 class="text-muted">
+                {% for artista in info.artistas %}
+                {{ artista.nombre }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </h4>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <span class="badge badge-info">Popularidad: {{ info.track.popularidad }}/100</span>
+                <span class="badge badge-secondary">{{ (info.track.duracion_ms // 60000) }}:{{ "%02d"|format((info.track.duracion_ms % 60000) // 1000) }}</span>
+                {% if info.track.explicito %}
+                <span class="badge badge-warning">Explicit</span>
+                {% endif %}
+                {% if info.track.enlace_spotify %}
+                <a href="{{ info.track.enlace_spotify }}" target="_blank" class="btn btn-sm btn-spotify">
+                    <i class="fab fa-spotify"></i> Ver en Spotify
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3><i class="fas fa-wave-square"></i> Características de Audio</h3>
+            </div>
+            <div class="card-body">
+                {% if info.audio_features %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="feature-item mb-3">
+                            <label>Tempo</label>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-info"
+                                     style="width: {{ (info.audio_features.tempo / 200 * 100)|min(100) }}%">
+                                    {{ info.audio_features.tempo|round(1) }} BPM
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-item mb-3">
+                            <label>Energy</label>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success"
+                                     style="width: {{ (info.audio_features.energy * 100) }}%">
+                                    {{ info.audio_features.energy|round(3) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-item mb-3">
+                            <label>Danceability</label>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-warning"
+                                     style="width: {{ (info.audio_features.danceability * 100) }}%">
+                                    {{ info.audio_features.danceability|round(3) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="feature-item mb-3">
+                            <label>Valence (Positividad)</label>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-primary"
+                                     style="width: {{ (info.audio_features.valence * 100) }}%">
+                                    {{ info.audio_features.valence|round(3) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-item mb-3">
+                            <label>Acousticness</label>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-secondary"
+                                     style="width: {{ (info.audio_features.acousticness * 100) }}%">
+                                    {{ info.audio_features.acousticness|round(3) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-item mb-3">
+                            <label>Instrumentalness</label>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-dark"
+                                     style="width: {{ (info.audio_features.instrumentalness * 100) }}%">
+                                    {{ info.audio_features.instrumentalness|round(3) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted">No hay características de audio disponibles</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if info.track.preview_url %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3><i class="fas fa-play-circle"></i> Vista Previa</h3>
+            </div>
+            <div class="card-body text-center">
+                <audio controls style="width: 100%; max-width: 500px;">
+                    <source src="{{ info.track.preview_url }}" type="audio/mpeg">
+                    Tu navegador no soporta audio HTML5
+                </audio>
+                <p class="text-muted mt-2">Vista previa de 30 segundos</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3><i class="fas fa-compact-disc"></i> Información del Álbum</h3>
+            </div>
+            <div class="card-body text-center">
+                {% if info.album.imagen %}
+                <img src="{{ info.album.imagen }}" alt="{{ info.album.nombre }}"
+                     style="width: 150px; height: 150px; border-radius: 8px; object-fit: cover; margin-bottom: 15px;">
+                {% endif %}
+                <h5>{{ info.album.nombre }}</h5>
+                <p class="text-muted">
+                    {{ info.album.tipo|title }} • {{ info.album.lanzamiento }}
+                </p>
+                <p>Track #{{ info.track.track_number }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-users"></i> Artistas</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for artista in info.artistas %}
+                    <div class="list-group-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>{{ artista.nombre }}</span>
+                            {% if artista.enlace_spotify %}
+                            <a href="{{ artista.enlace_spotify }}" target="_blank" class="btn btn-sm btn-spotify">
+                                <i class="fab fa-spotify"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.feature-item label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    font-size: 0.8rem;
+    line-height: 20px;
+}
+</style>
+{% endblock %}

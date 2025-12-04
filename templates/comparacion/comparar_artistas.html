@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}Comparar Artistas - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-exchange-alt"></i> Comparar Artistas Locales</h1>
+    <a href="/artistas" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a Artistas
+    </a>
+</div>
+
+<div class="row">
+    <!-- Artista 1 -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-user"></i> Artista 1</h3>
+            </div>
+            <div class="card-body text-center">
+                {% if comparacion.artista1.imagen_url %}
+                <img src="{{ comparacion.artista1.imagen_url }}" 
+                     alt="{{ comparacion.artista1.nombre }}"
+                     style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 20px;">
+                {% else %}
+                <div style="width: 150px; height: 150px; background: #f0f0f0; border-radius: 50%;
+                            display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="fas fa-user fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <h4>{{ comparacion.artista1.nombre }}</h4>
+                
+                <div class="artist-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-guitar"></i>
+                        <div>
+                            <h5>{{ comparacion.artista1.genero_principal or "N/A" }}</h5>
+                            <small>Género</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-globe-americas"></i>
+                        <div>
+                            <h5>{{ comparacion.artista1.pais or "N/A" }}</h5>
+                            <small>País</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-fire"></i>
+                        <div>
+                            <h5>{{ comparacion.artista1.popularidad }}%</h5>
+                            <small>Popularidad</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <span class="badge badge-info">
+                        {{ comparacion.artista1.total_canciones }} canciones
+                    </span>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="/artistas/{{ comparacion.artista1.id }}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resultado de Comparación -->
+    <div class="col-md-2 text-center">
+        <div class="comparison-result" style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+            <div class="similarity-circle">
+                <h1 class="display-3">{{ comparacion.comparacion.porcentaje_similitud }}%</h1>
+                <p class="text-muted">Similitud</p>
+            </div>
+            
+            <div class="mt-3">
+                <span class="badge badge-lg 
+                    {% if comparacion.comparacion.porcentaje_similitud > 75 %}badge-success
+                    {% elif comparacion.comparacion.porcentaje_similitud > 50 %}badge-warning
+                    {% elif comparacion.comparacion.porcentaje_similitud > 25 %}badge-info
+                    {% else %}badge-danger{% endif %}"
+                    style="font-size: 1.1rem;">
+                    {{ comparacion.comparacion.nivel }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Artista 2 -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fas fa-user"></i> Artista 2</h3>
+            </div>
+            <div class="card-body text-center">
+                {% if comparacion.artista2.imagen_url %}
+                <img src="{{ comparacion.artista2.imagen_url }}" 
+                     alt="{{ comparacion.artista2.nombre }}"
+                     style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 20px;">
+                {% else %}
+                <div style="width: 150px; height: 150px; background: #f0f0f0; border-radius: 50%;
+                            display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="fas fa-user fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <h4>{{ comparacion.artista2.nombre }}</h4>
+                
+                <div class="artist-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-guitar"></i>
+                        <div>
+                            <h5>{{ comparacion.artista2.genero_principal or "N/A" }}</h5>
+                            <small>Género</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-globe-americas"></i>
+                        <div>
+                            <h5>{{ comparacion.artista2.pais or "N/A" }}</h5>
+                            <small>País</small>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-fire"></i>
+                        <div>
+                            <h5>{{ comparacion.artista2.popularidad }}%</h5>
+                            <small>Popularidad</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <span class="badge badge-info">
+                        {{ comparacion.artista2.total_canciones }} canciones
+                    </span>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="/artistas/{{ comparacion.artista2.id }}" class="btn btn-outline-success">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalles de la Comparación -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> Detalles de la Comparación</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">{{ comparacion.comparacion.explicacion }}</p>
+                
+                {% if comparacion.recomendacion %}
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i> <strong>Recomendación:</strong> {{ comparacion.recomendacion }}
+                </div>
+                {% endif %}
+                
+                <h5>Atributos Comparados:</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Atributo</th>
+                                <th>Artista 1</th>
+                                <th>Artista 2</th>
+                                <th>Resultado</th>
+                                <th>Puntuación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in comparacion.comparacion.detalles %}
+                            <tr>
+                                <td><strong>{{ detalle.atributo }}</strong></td>
+                                <td>{{ detalle.artista1 }}</td>
+                                <td>{{ detalle.artista2 }}</td>
+                                <td>
+                                    {% if detalle.coincide == true %}
+                                    <span class="badge badge-success">Igual</span>
+                                    {% elif detalle.coincide == false %}
+                                    <span class="badge badge-danger">Diferente</span>
+                                    {% elif detalle.diferencia is defined %}
+                                    Diferencia: {{ detalle.diferencia }}
+                                    {% else %}
+                                    {{ detalle.coincide }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-primary">{{ detalle.puntuacion }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5>Puntuación Total</h5>
+                                <h1 class="display-4 text-primary">
+                                    {{ comparacion.comparacion.puntuacion_total }}
+                                </h1>
+                                <p class="text-muted">
+                                    de {{ comparacion.comparacion.max_puntuacion }} puntos
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Interpretación:</h5>
+                                <ul>
+                                    {% if comparacion.comparacion.porcentaje_similitud > 75 %}
+                                    <li>🎯 Artistas muy similares</li>
+                                    <li>✅ Podrían colaborar</li>
+                                    <li>🎵 Público objetivo similar</li>
+                                    {% elif comparacion.comparacion.porcentaje_similitud > 50 %}
+                                    <li>✅ Características en común</li>
+                                    <li>🎵 Géneros similares</li>
+                                    <li>🌎 Posiblemente mismo país</li>
+                                    {% elif comparacion.comparacion.porcentaje_similitud > 25 %}
+                                    <li>⚠️ Algunas similitudes</li>
+                                    <li>🎵 Diferencias notables</li>
+                                    <li>📊 Distintos niveles de popularidad</li>
+                                    {% else %}
+                                    <li>❌ Características muy diferentes</li>
+                                    <li>🎵 Distintos géneros</li>
+                                    <li>🌎 Diferentes países</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h2><i class="fas fa-bolt"></i> Acciones Relacionadas</h2>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <a href="/recomendaciones/artista/{{ comparacion.artista1.id }}" 
+                   class="btn btn-outline-primary btn-block">
+                    <i class="fas fa-star"></i> Artistas Similares a {{ comparacion.artista1.nombre }}
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/comparar/artista/{{ comparacion.artista1.id }}" 
+                   class="btn btn-outline-warning btn-block">
+                    <i class="fab fa-spotify"></i> Comparar {{ comparacion.artista1.nombre }} con Spotify
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/artistas/{{ comparacion.artista1.id }}/canciones" 
+                   class="btn btn-outline-info btn-block">
+                    <i class="fas fa-music"></i> Canciones de {{ comparacion.artista1.nombre }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.similarity-circle {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    box-shadow: 0 5px 15px rgba(0, 184, 148, 0.3);
+}
+
+.artist-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.stat-item i {
+    font-size: 1.5rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.stat-item h5 {
+    margin: 5px 0;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

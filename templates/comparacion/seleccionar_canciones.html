@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-exchange-alt"></i> {{ titulo }}</h1>
+    <a href="/comparacion-local" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Selecciona dos canciones para comparar</h3>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="/comparacion-local/comparar">
+            <input type="hidden" name="tipo" value="canciones">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id1">Selecciona la primera canción:</label>
+                        <select class="form-control" id="id1" name="id1" required>
+                            <option value="">-- Selecciona una canción --</option>
+                            {% for cancion in elementos %}
+                            <option value="{{ cancion.id }}">
+                                {{ cancion.nombre }} - {{ cancion.artista }}
+                                ({{ cancion.tempo }} BPM)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id2">Selecciona la segunda canción:</label>
+                        <select class="form-control" id="id2" name="id2" required>
+                            <option value="">-- Selecciona otra canción --</option>
+                            {% for cancion in elementos %}
+                            <option value="{{ cancion.id }}">
+                                {{ cancion.nombre }} - {{ cancion.artista }}
+                                ({{ cancion.tempo }} BPM)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-exchange-alt"></i> Comparar Canciones
+                </button>
+                <a href="/comparacion-local" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h4><i class="fas fa-lightbulb"></i> Canciones Disponibles ({{ elementos|length }})</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for cancion in elementos %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6>{{ cancion.nombre }}</h6>
+                        <p class="text-muted">{{ cancion.artista }}</p>
+                        <div class="d-flex justify-content-between">
+                            <span class="badge badge-info">{{ cancion.tempo }} BPM</span>
+                            <span class="badge badge-success">{{ "%.2f"|format(cancion.energy) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

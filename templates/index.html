@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Spotrend{% endblock %}
+
+{% block content %}
+<div class="hero text-center py-5">
+    <h1 class="display-4"><i class="fas fa-music"></i> Bienvenido a Spotrend</h1>
+    <p class="lead">Tu plataforma musical inteligente</p>
+
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fas fa-music fa-3x text-primary mb-3"></i>
+                    <h3>Canciones</h3>
+                    <p>Gestiona tu biblioteca musical con análisis técnico completo.</p>
+                    <a href="/canciones" class="btn btn-primary">Ver Canciones</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fas fa-user fa-3x text-success mb-3"></i>
+                    <h3>Artistas</h3>
+                    <p>Administra artistas y compara con la API de Spotify.</p>
+                    <a href="/artistas" class="btn btn-success">Ver Artistas</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fab fa-spotify fa-3x text-success mb-3"></i>
+                    <h3>Spotify</h3>
+                    <p>Integración completa con la API oficial de Spotify.</p>
+                    <a href="/spotify/buscar" class="btn btn-outline-success">Explorar Spotify</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
+                    <h3>Análisis</h3>
+                    <p>Analiza canciones vs benchmarks y descubre tendencias.</p>
+                    <a href="/analisis-v2/tendencias" class="btn btn-info">Ver Análisis</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fas fa-star fa-3x text-warning mb-3"></i>
+                    <h3>Recomendaciones</h3>
+                    <p>Sistema inteligente de recomendaciones musicales.</p>
+                    <a href="/recomendaciones/cancion" class="btn btn-warning">Ver Recomendaciones</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <div class="alert alert-light">
+            <h4><i class="fas fa-rocket"></i> Características Principales</h4>
+            <div class="row text-center mt-3">
+                <div class="col-md-3">
+                    <i class="fas fa-database fa-2x"></i>
+                    <p>Base de Datos</p>
+                </div>
+                <div class="col-md-3">
+                    <i class="fab fa-spotify fa-2x"></i>
+                    <p>Spotify API</p>
+                </div>
+                <div class="col-md-3">
+                    <i class="fas fa-chart-line fa-2x"></i>
+                    <p>Análisis</p>
+                </div>
+                <div class="col-md-3">
+                    <i class="fas fa-robot fa-2x"></i>
+                    <p>Recomendaciones</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Seleccionar para Comparar - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-exchange-alt"></i> Seleccionar para Comparar</h1>
+    <div>
+        <a href="/canciones" class="btn btn-outline-primary">
+            <i class="fas fa-music"></i> Canciones
+        </a>
+        <a href="/artistas" class="btn btn-outline-success">
+            <i class="fas fa-user"></i> Artistas
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-music"></i> Comparar Canciones</h3>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="/comparar-local/canciones">
+                    <div class="form-group">
+                        <label>Seleccionar Canción 1:</label>
+                        <select class="form-control" name="cancion1_id" required>
+                            <option value="">Selecciona una canción...</option>
+                            {% for cancion in canciones %}
+                            <option value="{{ cancion.id }}">
+                                {{ cancion.nombre }} - {{ cancion.artista }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Seleccionar Canción 2:</label>
+                        <select class="form-control" name="cancion2_id" required>
+                            <option value="">Selecciona otra canción...</option>
+                            {% for cancion in canciones %}
+                            <option value="{{ cancion.id }}">
+                                {{ cancion.nombre }} - {{ cancion.artista }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-exchange-alt"></i> Comparar Canciones
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-user"></i> Comparar Artistas</h3>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="/comparar-local/artistas">
+                    <div class="form-group">
+                        <label>Seleccionar Artista 1:</label>
+                        <select class="form-control" name="artista1_id" required>
+                            <option value="">Selecciona un artista...</option>
+                            {% for artista in artistas %}
+                            <option value="{{ artista.id }}">
+                                {{ artista.nombre }}
+                                {% if artista.genero_principal %}({{ artista.genero_principal }}){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Seleccionar Artista 2:</label>
+                        <select class="form-control" name="artista2_id" required>
+                            <option value="">Selecciona otro artista...</option>
+                            {% for artista in artistas %}
+                            <option value="{{ artista.id }}">
+                                {{ artista.nombre }}
+                                {% if artista.genero_principal %}({{ artista.genero_principal }}){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-block">
+                        <i class="fas fa-exchange-alt"></i> Comparar Artistas
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3><i class="fas fa-info-circle"></i> ¿Qué puedo comparar?</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="fas fa-music text-primary"></i> Comparación de Canciones</h5>
+                <ul>
+                    <li>Tempo (BPM)</li>
+                    <li>Energy</li>
+                    <li>Danceability</li>
+                    <li>Valence</li>
+                    <li>Artista</li>
+                    <li>Acousticness</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5><i class="fas fa-user text-success"></i> Comparación de Artistas</h5>
+                <ul>
+                    <li>Género principal</li>
+                    <li>País</li>
+                    <li>Popularidad</li>
+                    <li>Canciones en sistema</li>
+                    <li>Estadísticas musicales</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-lightbulb"></i>
+            <strong>Consejo:</strong> Compara canciones del mismo artista para ver su evolución, 
+            o compara artistas del mismo género para encontrar similitudes.
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3><i class="fas fa-bolt"></i> Comparaciones Rápidas</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Comparaciones Populares:</h5>
+                <div class="list-group">
+                    {% for cancion in canciones[:3] %}
+                    <a href="/comparacion-local/canciones/{{ cancion.id }}/{{ canciones[loop.index].id if loop.index < canciones|length else canciones[0].id }}"
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-exchange-alt"></i>
+                        {{ cancion.nombre }} ↔ 
+                        {{ canciones[loop.index].nombre if loop.index < canciones|length else canciones[0].nombre }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5>Artistas para Comparar:</h5>
+                <div class="list-group">
+                    {% for artista in artistas[:3] %}
+                    <a href="/comparacion-local/artistas/{{ artista.id }}/{{ artistas[loop.index].id if loop.index < artistas|length else artistas[0].id }}"
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-exchange-alt"></i>
+                        {{ artista.nombre }} ↔ 
+                        {{ artistas[loop.index].nombre if loop.index < artistas|length else artistas[0].nombre }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

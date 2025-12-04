@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Spotify Info - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fab fa-spotify"></i> Información de Spotify</h1>
+    <p class="lead">Busca artistas y canciones en Spotify y obtén información detallada</p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-user"></i> Buscar Artista</h2>
+            </div>
+            <div class="card-body">
+                <form action="/spotify/info/buscar-artista/html" method="GET" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="nombre" 
+                               placeholder="Nombre del artista..." required>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <p class="text-muted">
+                    <i class="fas fa-info-circle"></i> Obtén información de artistas, sus álbumes, 
+                    tracks top y artistas relacionados.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-music"></i> Buscar Canción</h2>
+            </div>
+            <div class="card-body">
+                <form action="/spotify/info/buscar-track/html" method="GET" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="nombre" 
+                               placeholder="Nombre de la canción..." required>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <p class="text-muted">
+                    <i class="fas fa-info-circle"></i> Encuentra canciones y obtén sus características 
+                    de audio y detalles.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3><i class="fas fa-chart-line"></i> Características Spotify</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <i class="fas fa-tachometer-alt fa-3x text-info mb-2"></i>
+                <h4>Audio Features</h4>
+                <p>Tempo, energy, danceability, valence, acousticness y más</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-chart-bar fa-3x text-success mb-2"></i>
+                <h4>Estadísticas</h4>
+                <p>Popularidad, seguidores, top tracks y análisis detallados</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-link fa-3x text-primary mb-2"></i>
+                <h4>Relaciones</h4>
+                <p>Artistas relacionados, discografía y conexiones musicales</p>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <p><i class="fab fa-spotify"></i> <strong>API de Spotify conectada en tiempo real</strong></p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Canción - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-plus-circle"></i> Crear Nueva Canción</h1>
+    <a href="/canciones" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-edit"></i> Formulario de Creación</h2>
+    </div>
+    
+    <div class="card-body">
+        <form method="POST" action="/canciones/crear" enctype="multipart/form-data">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="nombre" class="form-label">
+                        <i class="fas fa-heading"></i> Nombre de la Canción *
+                    </label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                           required placeholder="Ej: Bohemian Rhapsody">
+                </div>
+                
+                <div class="form-group col-md-6">
+                    <label for="artista" class="form-label">
+                        <i class="fas fa-user"></i> Artista *
+                    </label>
+                    <input type="text" class="form-control" id="artista" name="artista" 
+                           required placeholder="Ej: Queen">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="tempo" class="form-label">
+                        <i class="fas fa-tachometer-alt"></i> Tempo (BPM) *
+                    </label>
+                    <input type="number" step="0.1" class="form-control" id="tempo" name="tempo" 
+                           min="0" max="300" required placeholder="Ej: 120.5">
+                    <small class="form-text">Rango: 0 - 300 BPM</small>
+                </div>
+                
+                <div class="form-group col-md-6">
+                    <label for="energy" class="form-label">
+                        <i class="fas fa-bolt"></i> Energy *
+                    </label>
+                    <input type="number" step="0.01" class="form-control" id="energy" name="energy" 
+                           min="0" max="1" required placeholder="Ej: 0.85">
+                    <small class="form-text">Rango: 0.0 (calma) - 1.0 (energética)</small>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="danceability" class="form-label">
+                        <i class="fas fa-heart"></i> Danceability
+                    </label>
+                    <input type="number" step="0.01" class="form-control" id="danceability" 
+                           name="danceability" min="0" max="1" placeholder="Ej: 0.75">
+                    <small class="form-text">0.0 (no bailable) - 1.0 (muy bailable)</small>
+                </div>
+                
+                <div class="form-group col-md-4">
+                    <label for="valence" class="form-label">
+                        <i class="fas fa-smile"></i> Valence
+                    </label>
+                    <input type="number" step="0.01" class="form-control" id="valence" 
+                           name="valence" min="0" max="1" placeholder="Ej: 0.65">
+                    <small class="form-text">0.0 (triste) - 1.0 (feliz)</small>
+                </div>
+                
+                <div class="form-group col-md-4">
+                    <label for="acousticness" class="form-label">
+                        <i class="fas fa-guitar"></i> Acousticness
+                    </label>
+                    <input type="number" step="0.01" class="form-control" id="acousticness" 
+                           name="acousticness" min="0" max="1" placeholder="Ej: 0.25">
+                    <small class="form-text">0.0 (no acústica) - 1.0 (acústica)</small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="imagen" class="form-label">
+                    <i class="fas fa-image"></i> Imagen de Portada
+                </label>
+                <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*">
+                <small class="form-text">Formatos: JPG, PNG, GIF, WebP (opcional)</small>
+            </div>
+            
+            <div class="form-actions mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Guardar Canción
+                </button>
+                <button type="reset" class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> Limpiar
+                </button>
+                <a href="/canciones" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3><i class="fas fa-info-circle"></i> Información sobre los Campos</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h4><i class="fas fa-tachometer-alt text-info"></i> Tempo</h4>
+                <p>Velocidad de la canción en pulsaciones por minuto (BPM).</p>
+                <ul>
+                    <li><strong>Lento:</strong> 60-90 BPM (baladas)</li>
+                    <li><strong>Moderado:</strong> 90-120 BPM (pop)</li>
+                    <li><strong>Rápido:</strong> 120-160 BPM (dance)</li>
+                    <li><strong>Muy rápido:</strong> 160+ BPM (techno)</li>
+                </ul>
+            </div>
+            
+            <div class="col-md-6">
+                <h4><i class="fas fa-bolt text-warning"></i> Energy</h4>
+                <p>Intensidad y actividad percibida de la canción.</p>
+                <ul>
+                    <li><strong>Baja (0.0-0.3):</strong> Música relajante</li>
+                    <li><strong>Media (0.3-0.7):</strong> Pop estándar</li>
+                    <li><strong>Alta (0.7-1.0):</strong> Rock, electrónica</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <h4><i class="fas fa-heart text-danger"></i> Danceability</h4>
+                <p>Qué tan apropiada es para bailar.</p>
+            </div>
+            
+            <div class="col-md-4">
+                <h4><i class="fas fa-smile text-success"></i> Valence</h4>
+                <p>Positividad musical (felicidad).</p>
+            </div>
+            
+            <div class="col-md-4">
+                <h4><i class="fas fa-guitar text-primary"></i> Acousticness</h4>
+                <p>Probabilidad de que sea acústica.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-footer">
+        <p><i class="fas fa-code"></i> <strong>Endpoint API equivalente:</strong> 
+           <code>POST /canciones/</code> (envía JSON en lugar de form)</p>
+    </div>
+</div>
+{% endblock %}

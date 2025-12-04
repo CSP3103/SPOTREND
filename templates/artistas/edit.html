@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Editar {{ artista.nombre }} - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-edit"></i> Editar Artista: {{ artista.nombre }}</h1>
+    <a href="/artistas/{{ artista.id }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Cancelar
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-pencil-alt"></i> Formulario de Edición</h2>
+            </div>
+            
+            <div class="card-body">
+                <form method="POST" action="/artistas/{{ artista.id }}/editar" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" 
+                                   value="{{ artista.nombre }}" required>
+                        </div>
+                        
+                        <div class="form-group col-md-6">
+                            <label for="popularidad" class="form-label">Popularidad</label>
+                            <input type="number" class="form-control" id="popularidad" name="popularidad" 
+                                   value="{{ artista.popularidad }}" min="0" max="100" required>
+                            <small class="form-text">0 - 100%</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="pais" class="form-label">País</label>
+                            <input type="text" class="form-control" id="pais" name="pais" 
+                                   value="{{ artista.pais or '' }}" placeholder="Ej: Colombia">
+                        </div>
+                        
+                        <div class="form-group col-md-6">
+                            <label for="genero_principal" class="form-label">Género Principal</label>
+                            <input type="text" class="form-control" id="genero_principal" name="genero_principal" 
+                                   value="{{ artista.genero_principal or '' }}" placeholder="Ej: Pop, Rock">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="imagen" class="form-label">Imagen del Artista</label>
+                        <div class="mb-2">
+                            {% if artista.imagen_url %}
+                            <img src="{{ artista.imagen_url }}" alt="Imagen actual" 
+                                 style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">
+                            <p class="text-muted mt-1">Imagen actual</p>
+                            {% else %}
+                            <p class="text-muted">No hay imagen</p>
+                            {% endif %}
+                        </div>
+                        <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*">
+                        <small class="form-text">Dejar vacío para mantener la imagen actual</small>
+                    </div>
+                    
+                    <div class="form-actions mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="/artistas/{{ artista.id }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <a href="/artistas/{{ artista.id }}/eliminar" class="btn btn-danger float-right">
+                            <i class="fas fa-trash"></i> Eliminar Artista
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-info-circle"></i> Información Actual</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        ID
+                        <span class="badge badge-secondary">{{ artista.id }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Creado
+                        <span>{{ artista.creado_en.strftime('%d/%m/%Y') }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Última actualización
+                        <span>Ahora</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-lightbulb"></i> Consejos</h2>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>Los campos con * son obligatorios</li>
+                    <li>Deja los campos opcionales vacíos para eliminarlos</li>
+                    <li>La nueva imagen reemplazará la actual</li>
+                    <li>Los cambios son inmediatos</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fas fa-code"></i> API</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Para actualizar vía API:</strong></p>
+                <code>PUT /artistas/{{ artista.id }}</code>
+                <p class="mt-2"><small>Envía JSON con los campos a actualizar</small></p>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2><i class="fab fa-spotify"></i> Spotify</h2>
+            </div>
+            <div class="card-body">
+                <p>Después de editar, puedes:</p>
+                <ul>
+                    <li>Comparar con artistas de Spotify</li>
+                    <li>Buscar información actualizada</li>
+                    <li>Generar recomendaciones</li>
+                </ul>
+                <a href="/artistas/{{ artista.id }}/comparar" class="btn btn-spotify btn-sm btn-block">
+                    <i class="fab fa-spotify"></i> Comparar con Spotify
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

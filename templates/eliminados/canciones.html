@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Canciones Eliminadas - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-trash-restore"></i> Canciones Eliminadas</h1>
+    <div>
+        <a href="/canciones" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Canciones
+        </a>
+        {% if eliminados.total > 0 %}
+        <a href="/eliminados/restaurar-todos" class="btn btn-success">
+            <i class="fas fa-redo"></i> Restaurar Todos
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-trash"></i> Lista de Canciones Eliminadas</h2>
+        <span class="badge badge-danger">{{ eliminados.total }} eliminadas</span>
+    </div>
+
+    <div class="card-body">
+        {% if eliminados.total > 0 %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Las canciones eliminadas (soft delete) pueden ser restauradas individualmente
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Artista</th>
+                        <th>Tempo</th>
+                        <th>Energy</th>
+                        <th>Eliminada el</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cancion in eliminados.canciones %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if cancion.imagen_url %}
+                                <img src="{{ cancion.imagen_url }}"
+                                     alt="{{ cancion.nombre }}"
+                                     style="width: 40px; height: 40px; border-radius: 5px; object-fit: cover;">
+                                {% endif %}
+                                <strong>{{ cancion.nombre }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ cancion.artista }}</td>
+                        <td>
+                            <span class="badge badge-secondary">{{ cancion.tempo }} BPM</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-secondary">{{ "%.2f"|format(cancion.energy) }}</span>
+                        </td>
+                        <td>
+                            <small>{{ cancion.deleted_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="/canciones/{{ cancion.id }}/restaurar" 
+                                   class="btn btn-sm btn-success"
+                                   title="Restaurar">
+                                    <i class="fas fa-redo"></i>
+                                </a>
+                                <a href="/canciones/{{ cancion.id }}" 
+                                   class="btn btn-sm btn-primary"
+                                   title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-trash fa-4x text-muted mb-3"></i>
+            <h3>No hay canciones eliminadas</h3>
+            <p class="text-muted">Todas las canciones están activas en el sistema</p>
+            <a href="/canciones" class="btn btn-primary mt-3">
+                <i class="fas fa-music"></i> Ver Canciones Activas
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card-footer">
+        <p><i class="fas fa-shield-alt"></i> 
+           <strong>Soft Delete:</strong> Los elementos eliminados se mantienen en la base de datos 
+           pero no aparecen en las listas principales
+        </p>
+    </div>
+</div>
+{% endblock %}

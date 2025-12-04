@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Eliminar {{ cancion.nombre }} - Spotrend{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h2 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h2>
+            </div>
+
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-trash fa-4x text-danger mb-3"></i>
+                    <h3>¿Estás seguro de eliminar esta canción?</h3>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle"></i> Esta acción no se puede deshacer
+                </div>
+
+                <div class="song-info p-3 mb-4" style="background: #f8f9fa; border-radius: 5px;">
+                    {% if cancion.imagen_url %}
+                    <img src="{{ cancion.imagen_url }}" alt="{{ cancion.nombre }}"
+                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-bottom: 10px;">
+                    {% endif %}
+                    <h4>{{ cancion.nombre }}</h4>
+                    <p class="text-muted">{{ cancion.artista }}</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <span class="badge badge-info">{{ cancion.tempo }} BPM</span>
+                        <span class="badge badge-success">{{ "%.2f"|format(cancion.energy) }}</span>
+                        <span class="badge badge-secondary">ID: {{ cancion.id[:8] }}...</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Nota:</strong> La canción se marcará como eliminada (soft delete)
+                    y podrá restaurarse desde la sección de eliminados.
+                </div>
+
+                <form method="POST" action="/canciones/{{ cancion.id }}" class="mt-4">
+                    <input type="hidden" name="_method" value="DELETE">
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-trash"></i> Sí, Eliminar Canción
+                        </button>
+
+                        <a href="/canciones/{{ cancion.id }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-footer text-center">
+                <p class="text-muted mb-0">
+                    <i class="fas fa-shield-alt"></i>
+                    Esta acción es reversible desde <a href="/eliminados/canciones">/eliminados/canciones</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.song-info {
+    transition: all 0.3s;
+}
+
+.song-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.d-grid {
+    display: grid;
+}
+</style>
+{% endblock %}

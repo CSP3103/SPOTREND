@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Benchmarks - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-chart-line"></i> Benchmarks</h1>
+    <a href="/benchmarks/crear" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nuevo Benchmark
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-list"></i> Lista de Benchmarks</h2>
+        <span class="badge badge-primary">{{ benchmarks|length }} benchmarks</span>
+    </div>
+
+    <div class="card-body">
+        {% if benchmarks %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>País</th>
+                        <th>Género</th>
+                        <th>Tempo Promedio</th>
+                        <th>Energy Promedio</th>
+                        <th>Danceability</th>
+                        <th>Valence</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for benchmark in benchmarks %}
+                    <tr>
+                        <td>
+                            <span class="badge badge-info">{{ benchmark.pais }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ benchmark.genero }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge badge-secondary">{{ "%.1f"|format(benchmark.tempo_promedio) }} BPM</span>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 20px; width: 100px;">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ benchmark.energy_promedio * 100 }}%">
+                                    {{ "%.2f"|format(benchmark.energy_promedio) }}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if benchmark.danceability_promedio %}
+                            <span class="badge" style="background: #e91e63; color: white;">
+                                {{ "%.2f"|format(benchmark.danceability_promedio) }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if benchmark.valence_promedio %}
+                            <span class="badge" style="background: #4caf50; color: white;">
+                                {{ "%.2f"|format(benchmark.valence_promedio) }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ benchmark.creado_en.strftime('%d/%m/%Y') }}</small>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="/benchmarks/{{ benchmark.id }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="/benchmarks/{{ benchmark.id }}/editar" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="/benchmarks/{{ benchmark.id }}/analizar" class="btn btn-sm btn-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                </a>
+                                <a href="/benchmarks/{{ benchmark.id }}/eliminar" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+            <h3>No hay benchmarks registrados</h3>
+            <p class="text-muted">Crea tu primer benchmark para empezar a analizar mercados</p>
+            <a href="/benchmarks/crear" class="btn btn-primary mt-3">
+                <i class="fas fa-plus"></i> Crear Primer Benchmark
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card-footer">
+        <p><i class="fas fa-info-circle"></i> <strong>¿Qué es un Benchmark?</strong> 
+           Referencia de mercado por país y género musical</p>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3><i class="fas fa-lightbulb"></i> Cómo usar los Benchmarks</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h5><i class="fas fa-bullseye text-primary"></i> Objetivo</h5>
+                <p>Compara tus canciones con mercados específicos</p>
+            </div>
+            <div class="col-md-4">
+                <h5><i class="fas fa-chart-bar text-success"></i> Métricas</h5>
+                <p>Tempo, Energy, Danceability y Valence promedio</p>
+            </div>
+            <div class="col-md-4">
+                <h5><i class="fas fa-globe text-warning"></i> Mercados</h5>
+                <p>País + Género = Mercado objetivo</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

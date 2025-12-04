@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Recomendaciones - {{ artista_base.nombre }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Artistas Similares a: {{ artista_base.nombre }}</h1>
+    <div class="mt-2">
+        {% if artista_base.genero_principal %}
+        <span class="badge badge-primary">{{ artista_base.genero_principal }}</span>
+        {% endif %}
+        {% if artista_base.pais %}
+        <span class="badge badge-secondary">{{ artista_base.pais }}</span>
+        {% endif %}
+        <span class="badge badge-success">Popularidad: {{ artista_base.popularidad }}/100</span>
+    </div>
+</div>
+
+{% if mensaje %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> {{ mensaje }}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-users"></i> Artistas Recomendados</h2>
+    </div>
+    <div class="card-body">
+        {% if recomendaciones %}
+        <div class="row">
+            {% for rec in recomendaciones %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                            <div class="similarity-badge">
+                                {{ rec.similitud }}%
+                            </div>
+                            <div>
+                                <h5 class="mb-0">{{ rec.artista.nombre }}</h5>
+                                <p class="text-muted mb-0">{{ rec.razon }}</p>
+                            </div>
+                        </div>
+
+                        <div class="artist-info">
+                            {% if rec.artista.genero_principal %}
+                            <p><i class="fas fa-music"></i> <strong>Género:</strong> {{ rec.artista.genero_principal }}</p>
+                            {% endif %}
+                            {% if rec.artista.pais %}
+                            <p><i class="fas fa-globe"></i> <strong>País:</strong> {{ rec.artista.pais }}</p>
+                            {% endif %}
+                            <p><i class="fas fa-chart-line"></i> <strong>Popularidad:</strong> {{ rec.artista.popularidad }}/100</p>
+                            {% if rec.artista.anio_inicio %}
+                            <p><i class="fas fa-calendar"></i> <strong>Inicio:</strong> {{ rec.artista.anio_inicio }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-3">
+                            <a href="/artistas/{{ rec.artista.id }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> Ver Detalles
+                            </a>
+                            <a href="/spotify/info/buscar-artista/html?nombre={{ rec.artista.nombre }}"
+                               class="btn btn-spotify btn-sm">
+                                <i class="fab fa-spotify"></i> Buscar en Spotify
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h3>No se encontraron artistas similares</h3>
+            <p class="text-muted">Agrega más artistas a la base de datos para obtener recomendaciones</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3><i class="fas fa-cogs"></i> Criterios de Similitud</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-music fa-2x text-primary mb-2"></i>
+                    <h5>Género Musical</h5>
+                    <p class="text-muted">50% de la puntuación</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-globe fa-2x text-success mb-2"></i>
+                    <h5>País de Origen</h5>
+                    <p class="text-muted">30% de la puntuación</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-chart-line fa-2x text-warning mb-2"></i>
+                    <h5>Popularidad</h5>
+                    <p class="text-muted">20% de la puntuación</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.similarity-badge {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.artist-info p {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}

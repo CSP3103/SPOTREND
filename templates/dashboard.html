@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+    <span class="badge badge-primary">Actualizado en tiempo real</span>
+</div>
+
+<div class="row">
+    <!-- Canciones -->
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title"><i class="fas fa-music"></i> Canciones</h5>
+                        <h2 class="card-text">{{ datos.resumen.canciones_activas }}</h2>
+                    </div>
+                    <i class="fas fa-music fa-3x opacity-50"></i>
+                </div>
+                <small>
+                    Activas: {{ datos.resumen.canciones_activas }} |
+                    Eliminadas: {{ datos.resumen.canciones_eliminadas }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Artistas -->
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title"><i class="fas fa-user"></i> Artistas</h5>
+                        <h2 class="card-text">{{ datos.resumen.artistas_activos }}</h2>
+                    </div>
+                    <i class="fas fa-user fa-3x opacity-50"></i>
+                </div>
+                <small>
+                    Activos: {{ datos.resumen.artistas_activos }} |
+                    Eliminados: {{ datos.resumen.artistas_eliminados }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benchmarks -->
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title"><i class="fas fa-chart-line"></i> Benchmarks</h5>
+                        <h2 class="card-text">{{ datos.resumen.benchmarks_activos }}</h2>
+                    </div>
+                    <i class="fas fa-chart-line fa-3x opacity-50"></i>
+                </div>
+                <small>
+                    Activos: {{ datos.resumen.benchmarks_activos }} |
+                    Eliminados: {{ datos.resumen.benchmarks_eliminados }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análisis -->
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title"><i class="fas fa-chart-bar"></i> Análisis</h5>
+                        <h2 class="card-text">{{ datos.analisis.total_analisis }}</h2>
+                    </div>
+                    <i class="fas fa-chart-bar fa-3x opacity-50"></i>
+                </div>
+                <small>
+                    Total: {{ datos.analisis.total_analisis }} |
+                    Hoy: {{ datos.analisis.analisis_ultimas_24h }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Estadísticas de Análisis -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-pie"></i> Estadísticas de Análisis</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <h2 class="text-primary">{{ datos.analisis.afinidad_promedio }}</h2>
+                            <p class="text-muted">Afinidad Promedio</p>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-primary"
+                                     style="width: {{ datos.analisis.afinidad_promedio.replace('%', '')|float }}%">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <h2 class="text-success">{{ datos.analisis.analisis_ultimas_24h }}</h2>
+                            <p class="text-muted">Análisis (24h)</p>
+                            <small class="text-success">
+                                <i class="fas fa-arrow-up"></i> Activo
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <h2 class="text-warning">{{ datos.estado.api }}</h2>
+                            <p class="text-muted">Estado API</p>
+                            {% if datos.estado.api == "✅ Online" %}
+                            <span class="badge badge-success">Operativo</span>
+                            {% else %}
+                            <span class="badge badge-danger">Inactivo</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canciones más analizadas -->
+                <div class="mt-4">
+                    <h5><i class="fas fa-star"></i> Canciones Más Analizadas</h5>
+                    {% if datos.analisis.canciones_mas_analizadas %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID Canción</th>
+                                    <th>Análisis</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cancion in datos.analisis.canciones_mas_analizadas %}
+                                <tr>
+                                    <td><code>{{ cancion.cancion_id[:8] }}...</code></td>
+                                    <td>
+                                        <span class="badge badge-info">{{ cancion.total_analisis }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="/canciones/{{ cancion.cancion_id }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No hay análisis registrados aún</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado del Sistema -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-server"></i> Estado del Sistema</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        API FastAPI
+                        {% if datos.estado.api == "✅ Online" %}
+                        <span class="badge badge-success badge-pill">Online</span>
+                        {% else %}
+                        <span class="badge badge-danger badge-pill">Offline</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Base de Datos
+                        {% if datos.estado.base_datos == "✅ Conectada" %}
+                        <span class="badge badge-success badge-pill">Conectada</span>
+                        {% else %}
+                        <span class="badge badge-danger badge-pill">Error</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Spotify API
+                        {% if datos.estado.spotify == "✅ Conectado" %}
+                        <span class="badge badge-success badge-pill">Conectado</span>
+                        {% else %}
+                        <span class="badge badge-warning badge-pill">No verificado</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Supabase Storage
+                        <span class="badge badge-success badge-pill">Activo</span>
+                    </li>
+                </ul>
+
+                <div class="mt-3">
+                    <h6><i class="fas fa-history"></i> Última Actualización</h6>
+                    <p class="text-muted">{{ datos.estado.ultima_actualizacion }}</p>
+                </div>
+
+                <div class="mt-3">
+                    <a href="/dashboard?refresh=true" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-sync"></i> Actualizar
+                    </a>
+                    <a href="/logs" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-file-alt"></i> Ver Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/canciones/crear" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i> Nueva Canción
+                    </a>
+                    <a href="/artistas/crear" class="btn btn-outline-success">
+                        <i class="fas fa-user-plus"></i> Nuevo Artista
+                    </a>
+                    <a href="/benchmarks/crear" class="btn btn-outline-warning">
+                        <i class="fas fa-chart-line"></i> Nuevo Benchmark
+                    </a>
+                    <a href="/analisis-v2/tendencias" class="btn btn-outline-info">
+                        <i class="fas fa-chart-bar"></i> Ver Tendencias
+                    </a>
+                    <a href="/recomendaciones/descubrimiento" class="btn btn-outline-danger">
+                        <i class="fas fa-star"></i> Descubrimiento
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Benchmarks Más Usados -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-trophy"></i> Benchmarks Más Usados</h3>
+            </div>
+            <div class="card-body">
+                {% if datos.analisis.benchmarks_mas_usados %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Benchmark ID</th>
+                                <th>Usos</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bench in datos.analisis.benchmarks_mas_usados %}
+                            <tr>
+                                <td><code>#{{ bench.benchmark_id }}</code></td>
+                                <td>
+                                    <span class="badge badge-warning">{{ bench.total_usos }}</span>
+                                </td>
+                                <td>
+                                    <a href="/benchmarks/{{ bench.benchmark_id }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-chart-line"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No hay benchmarks usados aún</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen General -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Resumen General</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-check-circle text-success"></i> Totales Activos</h6>
+                        <ul class="list-unstyled">
+                            <li>🎵 Canciones: {{ datos.resumen.canciones_activas }}</li>
+                            <li>🎤 Artistas: {{ datos.resumen.artistas_activos }}</li>
+                            <li>📊 Benchmarks: {{ datos.resumen.benchmarks_activos }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-trash text-danger"></i> Totales Eliminados</h6>
+                        <ul class="list-unstyled">
+                            <li>🎵 Canciones: {{ datos.resumen.canciones_eliminadas }}</li>
+                            <li>🎤 Artistas: {{ datos.resumen.artistas_eliminados }}</li>
+                            <li>📊 Benchmarks: {{ datos.resumen.benchmarks_eliminados }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Consejo:</strong> Usa el análisis V2 para comparar tus canciones con múltiples benchmarks
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card {
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.stat-card h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.d-grid {
+    display: grid;
+}
+</style>
+{% endblock %}
