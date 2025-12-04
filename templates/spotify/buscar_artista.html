@@ -1,51 +1,28 @@
 {% extends "base.html" %}
-
-{% block title %}Buscar Artista - Spotify{% endblock %}
+{% block title %}Resultados Artista{% endblock %}
 
 {% block content %}
 
-<div class="page-header mb-4">
-    <h1><i class="fas fa-user-music text-success"></i> Buscar Artista</h1>
-    <a href="/spotify-info" class="btn btn-secondary mb-3">
-    <i class="fas fa-arrow-left"></i> Volver al Menú
-    </a>
+<h1>Resultados para "{{ busqueda }}"</h1>
+<a href="/spotify-info/buscar-artista" class="btn btn-secondary mb-3">Nueva búsqueda</a>
 
-    <p class="text-muted">Encuentra artistas, consulta su popularidad, seguidores y géneros musicales.</p>
-</div>
-
-<div class="card shadow-lg">
-    <div class="card-header bg-success text-white">
-        <h4 class="mb-0"><i class="fas fa-search"></i> Búsqueda de Artistas</h4>
-    </div>
-
-    <div class="card-body">
-
-        <form action="/spotify-info/buscar-artista/resultado" method="get">
-            <div class="form-group mb-3">
-                <label class="form-label">
-                    <i class="fas fa-keyboard"></i> Nombre del artista
-                </label>
-                <input
-                    type="text"
-                    name="nombre"
-                    class="form-control form-control-lg"
-                    placeholder="Ej: The Weeknd, Shakira, Drake"
-                    required
-                >
+<div class="list-group">
+    {% for a in resultados %}
+    <a href="/spotify-info/artista/{{ a.id }}" class="list-group-item list-group-item-action">
+        <div class="d-flex align-items-center gap-3">
+            {% if a.imagen %}
+            <img src="{{ a.imagen }}" style="width:60px;height:60px;border-radius:8px;">
+            {% endif %}
+            <div>
+                <h5>{{ a.nombre }}</h5>
+                <p class="text-muted">
+                    Popularidad: {{ a.popularidad }} |
+                    Seguidores: {{ a.seguidores }}
+                </p>
             </div>
-
-            <button class="btn btn-success btn-lg w-100">
-                <i class="fas fa-search"></i> Buscar
-            </button>
-        </form>
-
-    </div>
-</div>
-
-<hr class="my-5">
-
-<div class="text-center text-muted">
-    <p><i class="fas fa-info-circle"></i> La búsqueda usa la API oficial de Spotify en tiempo real.</p>
+        </div>
+    </a>
+    {% endfor %}
 </div>
 
 {% endblock %}

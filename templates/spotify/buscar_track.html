@@ -1,108 +1,18 @@
 {% extends "base.html" %}
-
-{% block title %}Buscar Canción - Spotify{% endblock %}
+{% block title %}Buscar Canción{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1><i class="fas fa-search"></i> Buscar Canción en Spotify</h1>
-    <a href="/spotify-info" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Volver
-    </a>
+
+<h1><i class="fas fa-search"></i> Buscar Canción</h1>
+<a href="/spotify-info" class="btn btn-secondary mb-3">Volver</a>
+
+<div class="card shadow p-4">
+    <form method="GET" action="/spotify-info/buscar-track/resultado">
+        <label>Nombre de la canción</label>
+        <input type="text" class="form-control" name="nombre" required>
+
+        <button class="btn btn-primary w-100 mt-3">Buscar</button>
+    </form>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h2><i class="fas fa-music"></i> Buscar Canción</h2>
-    </div>
-    <div class="card-body">
-        <form method="GET" action="/spotify-info/buscar-track/resultado" class="mb-4">
-            <div class="input-group">
-                <input type="text" class="form-control" name="nombre"
-                       value="{{ busqueda or '' }}"
-                       placeholder="Nombre de la canción..." required>
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search"></i> Buscar
-                    </button>
-                </div>
-            </div>
-        </form>
-
-        {% if error %}
-        <div class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle"></i> {{ error }}
-        </div>
-        {% endif %}
-
-        {% if busqueda %}
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i>
-            Buscando: <strong>"{{ busqueda }}"</strong>
-            {% if resultados %}
-            • Encontrados: {{ resultados.total_resultados }} resultados
-            {% endif %}
-        </div>
-        {% endif %}
-
-        {% if resultados and resultados.resultados %}
-        <div class="list-group">
-            {% for track in resultados.resultados %}
-            <div class="list-group-item">
-                <div style="display: flex; align-items: center; gap: 20px;">
-                    {% if track.imagen %}
-                    <img src="{{ track.imagen }}" alt="{{ track.nombre }}"
-                         style="width: 60px; height: 60px; border-radius: 5px; object-fit: cover;">
-                    {% endif %}
-                    <div style="flex: 1;">
-                        <h6 class="mb-1">{{ track.nombre }}</h6>
-                        <div class="mb-2">
-                            <span class="text-muted">{{ track.artista }} • {{ track.album }}</span>
-                        </div>
-                        <div>
-                            <span class="badge badge-info">{{ track.popularidad }}/100</span>
-                            <span class="badge badge-secondary">{{ (track.duracion_ms // 60000) }}:{{ "%02d"|format((track.duracion_ms % 60000) // 1000) }}</span>
-                            {% if track.audio_features %}
-                            <span class="badge badge-success">{{ track.audio_features.tempo|round(0) }} BPM</span>
-                            <span class="badge badge-warning">E: {{ track.audio_features.energy|round(2) }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div>
-                        <a href="/spotify/info/track/{{ track.id }}/html" class="btn btn-primary btn-sm">
-                            <i class="fas fa-info-circle"></i> Detalles
-                        </a>
-                        {% if track.preview_url %}
-                        <button class="btn btn-secondary btn-sm" onclick="playPreview('{{ track.preview_url }}')">
-                            <i class="fas fa-play"></i> Preview
-                        </button>
-                        {% endif %}
-                        {% if track.enlace_spotify %}
-                        <a href="{{ track.enlace_spotify }}" target="_blank" class="btn btn-spotify btn-sm">
-                            <i class="fab fa-spotify"></i>
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% elif busqueda and not error %}
-        <div class="text-center py-5">
-            <i class="fas fa-music fa-3x text-muted mb-3"></i>
-            <h3>No se encontraron canciones</h3>
-            <p class="text-muted">Intenta con otro nombre o verifica la ortografía</p>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<audio id="previewPlayer" style="display: none;"></audio>
-
-<script>
-function playPreview(url) {
-    var player = document.getElementById('previewPlayer');
-    player.src = url;
-    player.play();
-}
-</script>
 {% endblock %}

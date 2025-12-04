@@ -1,190 +1,20 @@
 {% extends "base.html" %}
-
-{% block title %}{{ info.artista.nombre }} - Spotify{% endblock %}
+{% block title %}Artista{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div style="display: flex; align-items: center; gap: 20px;">
-        {% if info.artista.imagen %}
-        <img src="{{ info.artista.imagen }}" alt="{{ info.artista.nombre }}"
-             style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
-        {% endif %}
-        <div>
-            <h1>{{ info.artista.nombre }}</h1>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <span class="badge badge-primary">{{ info.artista.seguidores|format_number }} seguidores</span>
-                <span class="badge badge-success">Popularidad: {{ info.artista.popularidad }}/100</span>
-                {% if info.artista.enlace_spotify %}
-                <a href="{{ info.artista.enlace_spotify }}" target="_blank" class="btn btn-sm btn-spotify">
-                    <i class="fab fa-spotify"></i> Ver en Spotify
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+
+<a href="/spotify-info/buscar-artista" class="btn btn-secondary mb-3">Volver</a>
+
+<div class="card shadow p-4">
+    <h2>{{ info.nombre }}</h2>
+
+    {% if info.imagen %}
+    <img src="{{ info.imagen }}" style="width:200px;border-radius:10px;" class="mb-3">
+    {% endif %}
+
+    <p><strong>Seguidores:</strong> {{ info.seguidores }}</p>
+    <p><strong>Popularidad:</strong> {{ info.popularidad }}</p>
+    <p><strong>Géneros:</strong> {{ info.generos|join(", ") }}</p>
 </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3><i class="fas fa-chart-pie"></i> Estadísticas de Audio</h3>
-            </div>
-            <div class="card-body">
-                {% if info.estadisticas_audio %}
-                <div class="row text-center">
-                    <div class="col-md-4">
-                        <div class="stat-box">
-                            <h5>Tempo Promedio</h5>
-                            <div class="stat-value">{{ info.estadisticas_audio.tempo_promedio }} BPM</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stat-box">
-                            <h5>Energy</h5>
-                            <div class="stat-value">{{ info.estadisticas_audio.energy_promedio }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stat-box">
-                            <h5>Danceability</h5>
-                            <div class="stat-value">{{ info.estadisticas_audio.danceability_promedio }}</div>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <p class="text-muted">No hay estadísticas de audio disponibles</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3><i class="fas fa-fire"></i> Top Tracks</h3>
-                <span class="badge badge-secondary">{{ info.top_tracks.total }} tracks</span>
-            </div>
-            <div class="card-body">
-                {% if info.top_tracks.tracks %}
-                <div class="list-group">
-                    {% for track in info.top_tracks.tracks %}
-                    <div class="list-group-item">
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            {% if track.imagen %}
-                            <img src="{{ track.imagen }}" alt="{{ track.nombre }}"
-                                 style="width: 50px; height: 50px; border-radius: 5px; object-fit: cover;">
-                            {% endif %}
-                            <div style="flex: 1;">
-                                <strong>{{ track.nombre }}</strong>
-                                <div class="text-muted">{{ track.album }}</div>
-                                <div class="mt-1">
-                                    <span class="badge badge-info">{{ track.popularidad }}/100</span>
-                                    <span class="badge badge-secondary">{{ (track.duracion_ms // 60000) }}:{{ "%02d"|format((track.duracion_ms % 60000) // 1000) }}</span>
-                                </div>
-                            </div>
-                            {% if track.preview_url %}
-                            <audio controls style="width: 150px; height: 40px;">
-                                <source src="{{ track.preview_url }}" type="audio/mpeg">
-                            </audio>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted">No hay top tracks disponibles</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3><i class="fas fa-compact-disc"></i> Discografía</h3>
-                <span class="badge badge-secondary">{{ info.discografia.total_albums }} álbumes</span>
-            </div>
-            <div class="card-body">
-                {% if info.discografia.albums %}
-                <div class="list-group">
-                    {% for album in info.discografia.albums %}
-                    <div class="list-group-item">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            {% if album.imagen %}
-                            <img src="{{ album.imagen }}" alt="{{ album.nombre }}"
-                                 style="width: 50px; height: 50px; border-radius: 5px; object-fit: cover;">
-                            {% endif %}
-                            <div>
-                                <strong>{{ album.nombre }}</strong>
-                                <div class="text-muted">
-                                    {{ album.tipo|title }} • {{ album.lanzamiento }} • {{ album.total_tracks }} tracks
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted">No hay discografía disponible</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fas fa-users"></i> Artistas Relacionados</h3>
-                <span class="badge badge-secondary">{{ info.artistas_relacionados.total }} artistas</span>
-            </div>
-            <div class="card-body">
-                {% if info.artistas_relacionados.artistas %}
-                <div class="list-group">
-                    {% for artista in info.artistas_relacionados.artistas %}
-                    <a href="/spotify/info/artista/{{ artista.id }}/html" class="list-group-item list-group-item-action">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            {% if artista.imagen %}
-                            <img src="{{ artista.imagen }}" alt="{{ artista.nombre }}"
-                                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                            {% endif %}
-                            <div>
-                                <strong>{{ artista.nombre }}</strong>
-                                <div class="text-muted">
-                                    {{ artista.generos|join(", ") }}
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted">No hay artistas relacionados</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-.stat-box {
-    padding: 15px;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    background: #f8f9fa;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #007bff;
-}
-
-.btn-spotify {
-    background-color: #1DB954;
-    color: white;
-    border: none;
-}
-
-.btn-spotify:hover {
-    background-color: #1ed760;
-    color: white;
-}
-</style>
 {% endblock %}

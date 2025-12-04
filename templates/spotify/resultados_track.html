@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Resultados Track{% endblock %}
+
+{% block content %}
+
+<h1>Resultados para "{{ busqueda }}"</h1>
+<a href="/spotify-info/buscar-track" class="btn btn-secondary mb-3">Nueva búsqueda</a>
+
+<div class="list-group">
+    {% for t in resultados %}
+    <a href="/spotify-info/track/{{ t.id }}" class="list-group-item list-group-item-action">
+
+        <div class="d-flex align-items-center gap-3">
+            {% if t.imagen %}
+            <img src="{{ t.imagen }}" style="width:60px;border-radius:8px;">
+            {% endif %}
+
+            <div>
+                <h5>{{ t.nombre }}</h5>
+                <p class="text-muted">{{ t.artista }}</p>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% endblock %}

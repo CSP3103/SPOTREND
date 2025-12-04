@@ -10,6 +10,7 @@ router = APIRouter(prefix="/spotify-info", tags=["Spotify"])
 templates = Jinja2Templates(directory="templates")
 logger = logging.getLogger(__name__)
 
+
 # ======================================================
 #                 MENU PRINCIPAL
 # ======================================================
@@ -25,11 +26,10 @@ async def menu_spotify(request: Request):
 
 @router.get("/buscar-artista", response_class=HTMLResponse)
 async def buscar_artista_form(request: Request):
-    return templates.TemplateResponse("spotify/buscar_artista.html", {
-        "request": request,
-        "busqueda": None,
-        "resultados": None
-    })
+    return templates.TemplateResponse(
+        "spotify/buscar_artista.html",
+        {"request": request, "busqueda": None, "resultados": None}
+    )
 
 
 @router.get("/buscar-artista/resultado", response_class=HTMLResponse)
@@ -39,19 +39,20 @@ async def buscar_artista_resultado(
     token: str = Depends(get_spotify_token_dependency)
 ):
     data = await buscar_artista_api(nombre, token)
-    return templates.TemplateResponse("spotify/resultados_artista.html", {
-        "request": request,
-        "busqueda": nombre,
-        "total": data["total_resultados"],
-        "resultados": data["resultados"]
-    })
+
+    return templates.TemplateResponse(
+        "spotify/resultados_artista.html",
+        {
+            "request": request,
+            "busqueda": nombre,
+            "total": data["total_resultados"],
+            "resultados": data["resultados"]
+        }
+    )
 
 
 @router.get("/api/buscar-artista/{nombre}")
-async def buscar_artista_api(
-    nombre: str,
-    token: str = Depends(get_spotify_token_dependency)
-):
+async def buscar_artista_api(nombre: str, token=Depends(get_spotify_token_dependency)):
     try:
         await asyncio.sleep(0.01)
 
@@ -81,6 +82,7 @@ async def buscar_artista_api(
     except Exception as e:
         logger.error(e)
         return {"busqueda": nombre, "total_resultados": 0, "resultados": []}
+
 
 # ======================================================
 #                INFO ARTISTA (HTML + JSON)
@@ -118,11 +120,10 @@ async def artista_api(id: str, token=Depends(get_spotify_token_dependency)):
 
 @router.get("/buscar-track", response_class=HTMLResponse)
 async def buscar_track_form(request: Request):
-    return templates.TemplateResponse("spotify/buscar_track.html", {
-        "request": request,
-        "busqueda": None,
-        "resultados": None
-    })
+    return templates.TemplateResponse(
+        "spotify/buscar_track.html",
+        {"request": request, "busqueda": None, "resultados": None}
+    )
 
 
 @router.get("/buscar-track/resultado", response_class=HTMLResponse)
@@ -132,12 +133,16 @@ async def buscar_track_resultado(
     token=Depends(get_spotify_token_dependency)
 ):
     data = await buscar_track_api(nombre, token)
-    return templates.TemplateResponse("spotify/resultados_track.html", {
-        "request": request,
-        "busqueda": nombre,
-        "total": data["total_resultados"],
-        "resultados": data["resultados"]
-    })
+
+    return templates.TemplateResponse(
+        "spotify/resultados_track.html",
+        {
+            "request": request,
+            "busqueda": nombre,
+            "total": data["total_resultados"],
+            "resultados": data["resultados"]
+        }
+    )
 
 
 @router.get("/api/buscar-track/{nombre}")
@@ -183,6 +188,7 @@ async def track_api(id: str, token=Depends(get_spotify_token_dependency)):
         raise HTTPException(404, "Track no encontrado")
 
     data = r.json()
+
     return {
         "id": data["id"],
         "nombre": data["name"],
