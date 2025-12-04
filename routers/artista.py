@@ -468,21 +468,24 @@ async def eliminar_artista_api(id: int, session: Session = Depends(get_session))
 
 @router.get("/{id}/restaurar")
 async def restaurar_artista_api(id: int, session: Session = Depends(get_session)):
-    """API: Restaurar artista (JSON) - ORIGINAL"""
+    """API: Restaurar artista con redirección a /eliminados/cantantes"""
     try:
         await asyncio.sleep(0.01)
         artista = session.get(Artista, id)
+
         if not artista:
             raise HTTPException(404, "Artista no encontrado")
 
         if not artista.deleted_at:
-            return {"message": "Artista no estaba eliminado", "ok": True}
+            # Ya está restaurado → redirige igual
+            return RedirectResponse("/eliminados/cantantes", status_code=303)
 
         artista.deleted_at = None
-        await asyncio.sleep(0.01)
         session.add(artista)
         session.commit()
-        return {"message": "Artista restaurado exitosamente", "ok": True}
+
+        # ✔ Redirige al listado de eliminados
+        return RedirectResponse("/eliminados/cantantes", status_code=303)
 
     except HTTPException:
         raise
