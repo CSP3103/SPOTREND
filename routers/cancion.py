@@ -434,14 +434,14 @@ async def restaurar_cancion(id: str, session: Session = Depends(get_session)):
 
         if not cancion.deleted_at:
             # Aunque no haga nada, igual redirige
-            return RedirectResponse("/eliminados/canciones", status_code=303)
+            return RedirectResponse("/canciones", status_code=303)
 
         cancion.deleted_at = None
         session.add(cancion)
         session.commit()
 
         # ✔ Redirección deseada
-        return RedirectResponse("/eliminados/canciones", status_code=303)
+        return RedirectResponse("/canciones", status_code=303)
 
     except HTTPException:
         raise
