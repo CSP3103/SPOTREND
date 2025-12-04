@@ -422,23 +422,26 @@ async def eliminar_cancion(id: str, session: Session = Depends(get_session)):
         raise HTTPException(500, "Error interno del servidor")
 
 
+
 @router.get("/{id}/restaurar")
 async def restaurar_cancion(id: str, session: Session = Depends(get_session)):
-    """API: Restaurar canción (JSON) - ORIGINAL"""
     try:
         await asyncio.sleep(0.01)
         cancion = session.get(Cancion, id)
+
         if not cancion:
             raise HTTPException(404, "Canción no encontrada")
 
         if not cancion.deleted_at:
-            return {"message": "Canción no estaba eliminada", "ok": True}
+            # Aunque no haga nada, igual redirige
+            return RedirectResponse("/eliminados/canciones", status_code=303)
 
         cancion.deleted_at = None
-        await asyncio.sleep(0.01)
         session.add(cancion)
         session.commit()
-        return {"message": "Canción restaurada exitosamente", "ok": True}
+
+        # ✔ Redirección deseada
+        return RedirectResponse("/eliminados/canciones", status_code=303)
 
     except HTTPException:
         raise
