@@ -4,13 +4,14 @@ from datetime import datetime
 from database import get_session
 from models import Benchmark
 import logging
+import asyncio
 
 router = APIRouter(prefix="/benchmarks", tags=["Benchmarks"])
 logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=Benchmark)
-def crear_benchmark(
+async def crear_benchmark(
         pais: str,
         genero: str,
         tempo_promedio: float,
@@ -21,9 +22,9 @@ def crear_benchmark(
 ):
     try:
         if tempo_promedio < 0 or tempo_promedio > 300:
-            raise HTTPException(400, "Tempo promedio debe estar entre 0 y 300")
+            raise HTTPException(400, "Tempo promedio inválido")
         if energy_promedio < 0 or energy_promedio > 1:
-            raise HTTPException(400, "Energy promedio debe estar entre 0 y 1")
+            raise HTTPException(400, "Energy promedio inválido")
 
         benchmark = Benchmark(
             pais=pais,
@@ -34,10 +35,10 @@ def crear_benchmark(
             valence_promedio=valence_promedio
         )
 
+        await asyncio.sleep(0.01)
         session.add(benchmark)
         session.commit()
         session.refresh(benchmark)
-        logger.info(f"Benchmark creado: {benchmark.id}")
         return benchmark
 
     except HTTPException:
@@ -49,20 +50,21 @@ def crear_benchmark(
 
 
 @router.get("/", response_model=list[Benchmark])
-def listar_benchmarks(session: Session = Depends(get_session)):
+async def listar_benchmarks(session: Session = Depends(get_session)):
     try:
-        benchmarks = session.exec(
+        await asyncio.sleep(0.01)
+        return session.exec(
             select(Benchmark).where(Benchmark.deleted_at == None)
         ).all()
-        return benchmarks
     except Exception as e:
         logger.error(f"Error listando benchmarks: {e}")
         return []
 
 
 @router.get("/{id}", response_model=Benchmark)
-def obtener_benchmark(id: int, session: Session = Depends(get_session)):
+async def obtener_benchmark(id: int, session: Session = Depends(get_session)):
     try:
+        await asyncio.sleep(0.01)
         benchmark = session.get(Benchmark, id)
         if not benchmark or benchmark.deleted_at:
             raise HTTPException(404, "Benchmark no encontrado")
@@ -75,7 +77,7 @@ def obtener_benchmark(id: int, session: Session = Depends(get_session)):
 
 
 @router.put("/{id}", response_model=Benchmark)
-def actualizar_benchmark(
+async def actualizar_benchmark(
         id: int,
         pais: str = None,
         genero: str = None,
@@ -86,14 +88,15 @@ def actualizar_benchmark(
         session: Session = Depends(get_session)
 ):
     try:
+        await asyncio.sleep(0.01)
         benchmark = session.get(Benchmark, id)
         if not benchmark or benchmark.deleted_at:
             raise HTTPException(404, "Benchmark no encontrado")
 
         if tempo_promedio is not None and (tempo_promedio < 0 or tempo_promedio > 300):
-            raise HTTPException(400, "Tempo promedio debe estar entre 0 y 300")
+            raise HTTPException(400, "Tempo promedio inválido")
         if energy_promedio is not None and (energy_promedio < 0 or energy_promedio > 1):
-            raise HTTPException(400, "Energy promedio debe estar entre 0 y 1")
+            raise HTTPException(400, "Energy promedio inválido")
 
         if pais is not None:
             benchmark.pais = pais
@@ -108,10 +111,10 @@ def actualizar_benchmark(
         if valence_promedio is not None:
             benchmark.valence_promedio = valence_promedio
 
+        await asyncio.sleep(0.01)
         session.add(benchmark)
         session.commit()
         session.refresh(benchmark)
-        logger.info(f"Benchmark actualizado: {id}")
         return benchmark
 
     except HTTPException:
@@ -123,8 +126,9 @@ def actualizar_benchmark(
 
 
 @router.delete("/{id}")
-def eliminar_benchmark(id: int, session: Session = Depends(get_session)):
+async def eliminar_benchmark(id: int, session: Session = Depends(get_session)):
     try:
+        await asyncio.sleep(0.01)
         benchmark = session.get(Benchmark, id)
         if not benchmark:
             raise HTTPException(404, "Benchmark no encontrado")
@@ -133,9 +137,9 @@ def eliminar_benchmark(id: int, session: Session = Depends(get_session)):
             return {"message": "Benchmark ya estaba eliminado", "ok": True}
 
         benchmark.deleted_at = datetime.utcnow()
+        await asyncio.sleep(0.01)
         session.add(benchmark)
         session.commit()
-        logger.info(f"Benchmark eliminado (soft): {id}")
         return {"message": "Benchmark eliminado exitosamente", "ok": True}
 
     except HTTPException:
@@ -147,8 +151,9 @@ def eliminar_benchmark(id: int, session: Session = Depends(get_session)):
 
 
 @router.get("/{id}/restaurar")
-def restaurar_benchmark(id: int, session: Session = Depends(get_session)):
+async def restaurar_benchmark(id: int, session: Session = Depends(get_session)):
     try:
+        await asyncio.sleep(0.01)
         benchmark = session.get(Benchmark, id)
         if not benchmark:
             raise HTTPException(404, "Benchmark no encontrado")
@@ -157,9 +162,9 @@ def restaurar_benchmark(id: int, session: Session = Depends(get_session)):
             return {"message": "Benchmark no estaba eliminado", "ok": True}
 
         benchmark.deleted_at = None
+        await asyncio.sleep(0.01)
         session.add(benchmark)
         session.commit()
-        logger.info(f"Benchmark restaurado: {id}")
         return {"message": "Benchmark restaurado exitosamente", "ok": True}
 
     except HTTPException:
