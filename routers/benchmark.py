@@ -440,14 +440,14 @@ async def restaurar_benchmark(id: int, session: Session = Depends(get_session)):
 
         if not benchmark.deleted_at:
             # Ya restaurado → redirige igual
-            return RedirectResponse("/eliminados/benchmarks", status_code=303)
+            return RedirectResponse("/benchmarks", status_code=303)
 
         benchmark.deleted_at = None
         session.add(benchmark)
         session.commit()
 
         # ✔ Redirige al listado de eliminados
-        return RedirectResponse("/eliminados/benchmarks", status_code=303)
+        return RedirectResponse("/benchmarks", status_code=303)
 
     except HTTPException:
         raise
