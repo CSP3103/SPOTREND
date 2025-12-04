@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header">
     <h1><i class="fas fa-search"></i> Buscar Canción en Spotify</h1>
-    <a href="/spotify/info" class="btn btn-secondary">
+    <a href="/spotify-info" class="btn btn-secondary">
         <i class="fas fa-arrow-left"></i> Volver
     </a>
 </div>
@@ -15,7 +15,7 @@
         <h2><i class="fas fa-music"></i> Buscar Canción</h2>
     </div>
     <div class="card-body">
-        <form method="GET" action="/spotify/info/buscar-track/html" class="mb-4">
+        <form method="GET" action="/spotify-info/buscar-track/resultado" class="mb-4">
             <div class="input-group">
                 <input type="text" class="form-control" name="nombre"
                        value="{{ busqueda or '' }}"
