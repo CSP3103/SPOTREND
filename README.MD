@@ -3,26 +3,46 @@
 <h2 align="center">📌 Versión en producción</h2>
 <p align="center"> 👉 <a href="https://spotrend.onrender.com" target="_blank"><b>https://spotrend.onrender.com</b></a> </p>
 <h2 align="center">🚀 Tecnologías utilizadas</h2>
+
 Tecnología	Uso
+
 🐍 Python 3.12	Backend
+
 ⚡ FastAPI	API y servidor web
+
 🎵 Spotify Web API	Fuente de datos
+
 🎨 HTML + CSS + Bootstrap + Jinja2	Frontend
+
 🗄️ SQLite + SQLModel	Base de datos
+
 ☁️ Render.com	Hosting
+
 <h2 align="center">🗂️ Estructura del proyecto</h2>
 📁 routers/
+
  ├── analisis.py
+
  ├── artista.py
+
  ├── benchmark.py
+
  ├── cancion.py
+
  ├── comparacion_local.py
+
  ├── comparar_spotify.py
+
  ├── dashboard.py
+
  ├── eliminados.py
+
  ├── recomendaciones.py
+
  ├── spotify_auth.py
+
  └── spotify_data.py
+
 
 📁 services/
  ├── analisis_service.py
