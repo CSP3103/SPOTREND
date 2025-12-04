@@ -478,14 +478,14 @@ async def restaurar_artista_api(id: int, session: Session = Depends(get_session)
 
         if not artista.deleted_at:
             # Ya está restaurado → redirige igual
-            return RedirectResponse("/cantantes", status_code=303)
+            return RedirectResponse("/artistas", status_code=303)
 
         artista.deleted_at = None
         session.add(artista)
         session.commit()
 
         # ✔ Redirige al listado de eliminados
-        return RedirectResponse("/cantantes", status_code=303)
+        return RedirectResponse("/artistas", status_code=303)
 
     except HTTPException:
         raise
