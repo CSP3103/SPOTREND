@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis de Benchmark - Spotrend{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1><i class="fas fa-chart-line"></i> Análisis del Benchmark</h1>
+    <a href="/benchmarks" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a Benchmarks
+    </a>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h2><i class="fas fa-layer-group"></i> Información del Benchmark</h2>
+    </div>
+
+    <div class="card-body">
+        <p><strong>Nombre:</strong> {{ benchmark.nombre }}</p>
+        <p><strong>Descripción:</strong> {{ benchmark.descripcion }}</p>
+
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle"></i>
+            Aquí puedes analizar este benchmark, revisar sus canciones o compararlo con otros estilos.
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+
+    <!-- Analizar datos -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-chart-pie"></i> Analizar métricas</h3>
+            </div>
+            <div class="card-body">
+                <p>
+                    Explora el análisis estadístico del benchmark: tempo, energía, mood, variaciones y más.
+                </p>
+                <a href="/benchmarks/{{ benchmark.id }}/analisis" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Ver análisis
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ver canciones del benchmark -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fas fa-music"></i> Canciones del Benchmark</h3>
+            </div>
+            <div class="card-body">
+                <p>
+                    Administra, visualiza y analiza las canciones que hacen parte de este benchmark.
+                </p>
+                <a href="/benchmarks/{{ benchmark.id }}/canciones" class="btn btn-success w-100">
+                    <i class="fas fa-list"></i> Ver canciones
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="mt-5 text-center">
+    <a href="/recomendaciones/desde-benchmark/{{ benchmark.id }}" class="btn btn-outline-info btn-lg">
+        <i class="fas fa-magic"></i> Obtener recomendaciones basadas en este benchmark
+    </a>
+</div>
+
+{% endblock %}

@@ -16,6 +16,15 @@ templates = Jinja2Templates(directory="templates")
 
 
 # ========== ENDPOINTS HTML ==========
+@router.get("/", response_class=HTMLResponse)
+async def recomendaciones_home(request: Request):
+    """
+    Menú principal de Recomendaciones (HTML)
+    """
+    return templates.TemplateResponse("recomendaciones/home.html", {
+        "request": request
+    })
+
 
 @router.get("/cancion/{cancion_id}", response_class=HTMLResponse)
 async def recomendar_similares_html(

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Recomendaciones - Spotrend{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-magic"></i> Centro de Recomendaciones</h1>
+    <a href="/" class="btn btn-secondary">
+        <i class="fas fa-home"></i> Inicio
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-compass"></i> ¿Qué tipo de recomendación deseas?</h2>
+    </div>
+
+    <div class="card-body">
+
+        <a href="/recomendaciones/descubrimiento/html" class="btn btn-primary btn-lg mb-3">
+            <i class="fas fa-random"></i> Descubrimiento Musical
+        </a>
+
+        <form method="GET" action="/recomendaciones/cancion" class="mb-3">
+            <label class="form-label">
+                <i class="fas fa-music"></i> Recomendar por Canción (ID)
+            </label>
+            <input type="text" name="id" class="form-control" placeholder="Ej: 1" required>
+            <button class="btn btn-success mt-2">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </form>
+
+        <form method="GET" action="/recomendaciones/artista" class="mb-3">
+            <label class="form-label">
+                <i class="fas fa-user"></i> Recomendar por Artista (ID)
+            </label>
+            <input type="text" name="id" class="form-control" placeholder="Ej: 23" required>
+            <button class="btn btn-info mt-2">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </form>
+
+        <form method="GET" action="/recomendaciones/para-benchmark" class="mb-3">
+            <label class="form-label">
+                <i class="fas fa-list-ol"></i> Recomendación por Benchmark (ID)
+            </label>
+            <input type="number" name="id" class="form-control" placeholder="Ej: 5" required>
+            <button class="btn btn-warning mt-2">
+                <i class="fas fa-chevron-right"></i> Ir
+            </button>
+        </form>
+
+    </div>
+
+    <div class="card-footer">
+        <code>GET /recomendaciones/</code> – Menú principal de recomendaciones
+    </div>
+</div>
+{% endblock %}

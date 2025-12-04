@@ -117,41 +117,7 @@
         </div>
     </div>
     
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h2><i class="fab fa-spotify"></i> Comparar con Spotify</h2>
-            </div>
-            <div class="card-body">
-                <form method="GET" action="/comparar/artista">
-                    <div class="form-group">
-                        <label class="form-label">Comparar Artista Local</label>
-                        <select class="form-control" name="id">
-                            <option value="">Selecciona un artista</option>
-                            {% for artista in artistas %}
-                            <option value="{{ artista.id }}">{{ artista.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-spotify btn-block">
-                        <i class="fas fa-exchange-alt"></i> Comparar con Spotify
-                    </button>
-                </form>
-                
-                <hr>
-                
-                <form method="GET" action="/spotify/info/artista">
-                    <div class="form-group">
-                        <label class="form-label">Buscar en Spotify</label>
-                        <input type="text" class="form-control" name="nombre" 
-                               placeholder="Nombre de artista en Spotify">
-                    </div>
-                    <button type="submit" class="btn btn-spotify btn-block">
-                        <i class="fas fa-search"></i> Buscar en Spotify
-                    </button>
-                </form>
-            </div>
-        </div>
+
         
         <div class="card mt-4">
             <div class="card-header">
@@ -191,12 +157,6 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="/recomendaciones/artista" class="btn btn-secondary">
-                        <i class="fas fa-star"></i> Recomendaciones de Artistas
-                    </a>
-                    <a href="/comparacion-local/artistas" class="btn btn-secondary">
-                        <i class="fas fa-exchange-alt"></i> Comparar Artistas Locales
-                    </a>
                     <a href="/eliminados/artistas" class="btn btn-secondary">
                         <i class="fas fa-trash-restore"></i> Ver Eliminados
                     </a>

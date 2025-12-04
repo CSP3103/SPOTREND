@@ -1,558 +1,192 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from routers.spotify_auth import get_spotify_token_dependency
 import requests
-import logging
 import asyncio
+import logging
 
-router = APIRouter(prefix="/spotify/info", tags=["Información Spotify"])
+router = APIRouter(prefix="/spotify-info", tags=["Spotify"])
+templates = Jinja2Templates(directory="templates")
 logger = logging.getLogger(__name__)
 
-# Templates para HTML
-templates = Jinja2Templates(directory="templates")
-
-
-# ========== ENDPOINTS HTML (MANTENER LOS ENDPOINTS ORIGINALES) ==========
+# ======================================================
+#                 MENU PRINCIPAL
+# ======================================================
 
 @router.get("/", response_class=HTMLResponse)
-async def spotify_info_home_html(request: Request):
-    """Página principal de información de Spotify (HTML)"""
-    return templates.TemplateResponse("spotify/home.html", {
-        "request": request
+async def menu_spotify(request: Request):
+    return templates.TemplateResponse("spotify/menu.html", {"request": request})
+
+
+# ======================================================
+#           BUSCAR ARTISTA (FORM + RESULTADO + JSON)
+# ======================================================
+
+@router.get("/buscar-artista", response_class=HTMLResponse)
+async def buscar_artista_form(request: Request):
+    return templates.TemplateResponse("spotify/buscar_artista.html", {
+        "request": request,
+        "busqueda": None,
+        "resultados": None
     })
 
 
-@router.get("/artista/{artista_id}", response_class=HTMLResponse)
-async def obtener_info_artista_spotify_html(
-        request: Request,
-        artista_id: str,
-        token: str = Depends(get_spotify_token_dependency)
+@router.get("/buscar-artista/resultado", response_class=HTMLResponse)
+async def buscar_artista_resultado(
+    request: Request,
+    nombre: str,
+    token: str = Depends(get_spotify_token_dependency)
 ):
-    """Información de artista desde Spotify (HTML)"""
-    try:
-        data = await obtener_info_artista_spotify(artista_id, token)
-        return templates.TemplateResponse("spotify/artista.html", {
-            "request": request,
-            "info": data
-        })
-    except Exception as e:
-        logger.error(f"Error HTML artista {artista_id}: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
-            "error": f"No se pudo obtener información del artista: {str(e)[:100]}"
-        })
+    data = await buscar_artista_api(nombre, token)
+    return templates.TemplateResponse("spotify/resultados_artista.html", {
+        "request": request,
+        "busqueda": nombre,
+        "total": data["total_resultados"],
+        "resultados": data["resultados"]
+    })
 
 
-@router.get("/buscar-artista", response_class=HTMLResponse)
-async def buscar_artista_spotify_html(
-        request: Request,
-        nombre: str = None,
-        token: str = Depends(get_spotify_token_dependency)
+@router.get("/api/buscar-artista/{nombre}")
+async def buscar_artista_api(
+    nombre: str,
+    token: str = Depends(get_spotify_token_dependency)
 ):
-    """Buscar artista en Spotify (HTML)"""
-    if not nombre:
-        return templates.TemplateResponse("spotify/buscar_artista.html", {
-            "request": request,
-            "busqueda": None,
-            "resultados": None
-        })
-
     try:
-        resultados = await buscar_artista_spotify(nombre, token)
-        # note: buscar_artista_spotify devuelve dict con 'resultados' etc. adaptamos:
-        resultados_lista = resultados.get("resultados") if isinstance(resultados, dict) else resultados
-        return templates.TemplateResponse("spotify/buscar_artista.html", {
-            "request": request,
+        await asyncio.sleep(0.01)
+
+        headers = {"Authorization": f"Bearer {token}"}
+        params = {"q": nombre, "type": "artist", "limit": 10, "market": "CO"}
+
+        r = requests.get("https://api.spotify.com/v1/search", headers=headers, params=params)
+        items = r.json().get("artists", {}).get("items", [])
+
+        resultados = []
+        for a in items:
+            resultados.append({
+                "id": a["id"],
+                "nombre": a["name"],
+                "seguidores": a.get("followers", {}).get("total", 0),
+                "popularidad": a.get("popularity", 0),
+                "generos": a.get("genres", [])[:3],
+                "imagen": a["images"][0]["url"] if a.get("images") else None
+            })
+
+        return {
             "busqueda": nombre,
-            "resultados": resultados_lista
-        })
+            "total_resultados": len(resultados),
+            "resultados": resultados
+        }
+
     except Exception as e:
-        logger.error(f"Error HTML buscando artista {nombre}: {e}")
-        return templates.TemplateResponse("spotify/buscar_artista.html", {
-            "request": request,
-            "busqueda": nombre,
-            "error": f"Error en la búsqueda: {str(e)[:100]}",
-            "resultados": None
-        })
+        logger.error(e)
+        return {"busqueda": nombre, "total_resultados": 0, "resultados": []}
+
+# ======================================================
+#                INFO ARTISTA (HTML + JSON)
+# ======================================================
+
+@router.get("/artista/{id}", response_class=HTMLResponse)
+async def artista_html(request: Request, id: str, token=Depends(get_spotify_token_dependency)):
+    data = await artista_api(id, token)
+    return templates.TemplateResponse("spotify/artista.html", {"request": request, "info": data})
 
 
-@router.get("/track/{track_id}", response_class=HTMLResponse)
-async def obtener_info_track_spotify_html(
-        request: Request,
-        track_id: str,
-        token: str = Depends(get_spotify_token_dependency)
-):
-    """Información de track desde Spotify (HTML)"""
-    try:
-        data = await obtener_info_track_spotify(track_id, token)
-        return templates.TemplateResponse("spotify/track.html", {
-            "request": request,
-            "info": data
-        })
-    except Exception as e:
-        logger.error(f"Error HTML track {track_id}: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
-            "error": f"No se pudo obtener información del track: {str(e)[:100]}"
-        })
+@router.get("/api/artista/{id}")
+async def artista_api(id: str, token=Depends(get_spotify_token_dependency)):
+    headers = {"Authorization": f"Bearer {token}"}
 
+    r = requests.get(f"https://api.spotify.com/v1/artists/{id}", headers=headers)
+    if r.status_code != 200:
+        raise HTTPException(404, "Artista no encontrado")
+
+    data = r.json()
+
+    return {
+        "id": data["id"],
+        "nombre": data["name"],
+        "generos": data.get("genres", []),
+        "seguidores": data["followers"]["total"],
+        "popularidad": data["popularity"],
+        "imagen": data["images"][0]["url"] if data.get("images") else None
+    }
+
+
+# ======================================================
+#            BUSCAR TRACK (FORM + RESULTADO + JSON)
+# ======================================================
 
 @router.get("/buscar-track", response_class=HTMLResponse)
-async def buscar_track_spotify_html(
-        request: Request,
-        nombre: str = None,
-        token: str = Depends(get_spotify_token_dependency)
+async def buscar_track_form(request: Request):
+    return templates.TemplateResponse("spotify/buscar_track.html", {
+        "request": request,
+        "busqueda": None,
+        "resultados": None
+    })
+
+
+@router.get("/buscar-track/resultado", response_class=HTMLResponse)
+async def buscar_track_resultado(
+    request: Request,
+    nombre: str,
+    token=Depends(get_spotify_token_dependency)
 ):
-    """Buscar track en Spotify (HTML)"""
-    if not nombre:
-        return templates.TemplateResponse("spotify/buscar_track.html", {
-            "request": request,
-            "busqueda": None,
-            "resultados": None
+    data = await buscar_track_api(nombre, token)
+    return templates.TemplateResponse("spotify/resultados_track.html", {
+        "request": request,
+        "busqueda": nombre,
+        "total": data["total_resultados"],
+        "resultados": data["resultados"]
+    })
+
+
+@router.get("/api/buscar-track/{nombre}")
+async def buscar_track_api(nombre: str, token=Depends(get_spotify_token_dependency)):
+    headers = {"Authorization": f"Bearer {token}"}
+    params = {"q": nombre, "type": "track", "limit": 10, "market": "CO"}
+
+    r = requests.get("https://api.spotify.com/v1/search", headers=headers, params=params)
+    items = r.json().get("tracks", {}).get("items", [])
+
+    resultados = []
+    for t in items:
+        resultados.append({
+            "id": t["id"],
+            "nombre": t["name"],
+            "artista": t["artists"][0]["name"],
+            "imagen": t["album"]["images"][0]["url"] if t["album"].get("images") else None
         })
 
-    try:
-        resultados = await buscar_track_spotify(nombre, token)
-        resultados_lista = resultados.get("resultados") if isinstance(resultados, dict) else resultados
-        return templates.TemplateResponse("spotify/buscar_track.html", {
-            "request": request,
-            "busqueda": nombre,
-            "resultados": resultados_lista
-        })
-    except Exception as e:
-        logger.error(f"Error HTML buscando track {nombre}: {e}")
-        return templates.TemplateResponse("spotify/buscar_track.html", {
-            "request": request,
-            "busqueda": nombre,
-            "error": f"Error en la búsqueda: {str(e)[:100]}",
-            "resultados": None
-        })
+    return {
+        "busqueda": nombre,
+        "total_resultados": len(resultados),
+        "resultados": resultados
+    }
 
 
-# ========== ENDPOINTS ORIGINALES (JSON) ==========
+# ======================================================
+#                INFO TRACK (HTML + JSON)
+# ======================================================
 
-@router.get("/artista/{artista_id}")
-async def obtener_info_artista_spotify(
-        artista_id: str,
-        token: str = Depends(get_spotify_token_dependency)
-):
-    try:
-        await asyncio.sleep(0.01)
-        headers = {'Authorization': f'Bearer {token}'}
-
-        response = requests.get(
-            f'https://api.spotify.com/v1/artists/{artista_id}',
-            headers=headers,
-            timeout=10
-        )
-
-        if response.status_code != 200:
-            raise HTTPException(404, f"Artista no encontrado en Spotify")
-
-        artista_data = response.json()
-
-        top_tracks_response = requests.get(
-            f'https://api.spotify.com/v1/artists/{artista_id}/top-tracks?market=CO',
-            headers=headers,
-            timeout=10
-        )
-
-        top_tracks = []
-        if top_tracks_response.status_code == 200:
-            for track in top_tracks_response.json().get('tracks', [])[:5]:
-                top_tracks.append({
-                    'id': track['id'],
-                    'nombre': track['name'],
-                    'album': track['album']['name'],
-                    'popularidad': track.get('popularity'),
-                    'duracion_ms': track.get('duration_ms'),
-                    'preview_url': track.get('preview_url'),
-                    'imagen': track['album']['images'][0]['url'] if track['album']['images'] else None
-                })
-
-        albums_response = requests.get(
-            f'https://api.spotify.com/v1/artists/{artista_id}/albums?limit=5&market=CO',
-            headers=headers,
-            timeout=10
-        )
-
-        albums = []
-        if albums_response.status_code == 200:
-            for album in albums_response.json().get('items', []):
-                albums.append({
-                    'id': album['id'],
-                    'nombre': album['name'],
-                    'tipo': album['album_type'],
-                    'lanzamiento': album.get('release_date'),
-                    'total_tracks': album.get('total_tracks'),
-                    'imagen': album['images'][0]['url'] if album['images'] else None
-                })
-
-        related_response = requests.get(
-            f'https://api.spotify.com/v1/artists/{artista_id}/related-artists',
-            headers=headers,
-            timeout=10
-        )
-
-        related_artists = []
-        if related_response.status_code == 200:
-            for artist in related_response.json().get('artists', [])[:5]:
-                related_artists.append({
-                    'id': artist['id'],
-                    'nombre': artist['name'],
-                    'generos': artist.get('genres', [])[:3],
-                    'popularidad': artist.get('popularity'),
-                    'imagen': artist['images'][0]['url'] if artist.get('images') else None
-                })
-
-        # ESTADÍSTICAS MEJORADAS
-        audio_stats = {
-            'tempo_promedio': 0,
-            'energy_promedio': 0,
-            'danceability_promedio': 0,
-            'valence_promedio': 0,
-            'acousticness_promedio': 0,
-            'total_tracks_con_features': 0
-        }
-
-        if top_tracks:
-            # Obtener IDs de tracks
-            track_ids = [track['id'] for track in top_tracks if track.get('id')]
-
-            if track_ids:
-                # Consultar múltiples tracks a la vez (más eficiente)
-                features_response = requests.get(
-                    f'https://api.spotify.com/v1/audio-features?ids={",".join(track_ids[:5])}',
-                    headers=headers,
-                    timeout=10
-                )
-
-                if features_response.status_code == 200:
-                    features_list = features_response.json().get('audio_features', [])
-
-                    tempo_total = energy_total = dance_total = valence_total = acoustic_total = 0
-                    tracks_con_features = 0
-
-                    for features in features_list:
-                        if features:  # Spotify a veces devuelve null
-                            tempo_total += features.get('tempo', 0)
-                            energy_total += features.get('energy', 0)
-                            dance_total += features.get('danceability', 0)
-                            valence_total += features.get('valence', 0)
-                            acoustic_total += features.get('acousticness', 0)
-                            tracks_con_features += 1
-
-                    if tracks_con_features > 0:
-                        audio_stats = {
-                            'tempo_promedio': round(tempo_total / tracks_con_features, 1),
-                            'energy_promedio': round(energy_total / tracks_con_features, 3),
-                            'danceability_promedio': round(dance_total / tracks_con_features, 3),
-                            'valence_promedio': round(valence_total / tracks_con_features, 3),
-                            'acousticness_promedio': round(acoustic_total / tracks_con_features, 3),
-                            'total_tracks_con_features': tracks_con_features
-                        }
-
-        return {
-            "artista": {
-                "id": artista_data.get('id'),
-                "nombre": artista_data.get('name'),
-                "generos": artista_data.get('genres', []),
-                "popularidad": artista_data.get('popularity'),
-                "seguidores": artista_data.get('followers', {}).get('total', 0),
-                "imagen": artista_data['images'][0]['url'] if artista_data.get('images') else None,
-                "enlace_spotify": artista_data.get('external_urls', {}).get('spotify')
-            },
-            "estadisticas_audio": audio_stats,
-            "top_tracks": {
-                "total": len(top_tracks),
-                "tracks": top_tracks
-            },
-            "discografia": {
-                "total_albums": len(albums),
-                "albums": albums
-            },
-            "artistas_relacionados": {
-                "total": len(related_artists),
-                "artistas": related_artists
-            },
-            "metadata": {
-                "fuente": "Spotify API",
-                "actualizado": "En tiempo real",
-                "artista_id": artista_id
-            }
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error obteniendo info artista {artista_id}: {e}")
-        return {
-            "error": "No se pudo obtener información del artista",
-            "detalle": str(e)[:200],
-            "artista_id": artista_id
-        }
+@router.get("/track/{id}", response_class=HTMLResponse)
+async def track_html(request: Request, id: str, token=Depends(get_spotify_token_dependency)):
+    data = await track_api(id, token)
+    return templates.TemplateResponse("spotify/track.html", {"request": request, "info": data})
 
 
-@router.get("/buscar-artista/{nombre}")
-async def buscar_artista_spotify(
-        nombre: str,
-        token: str = Depends(get_spotify_token_dependency)
-):
-    try:
-        await asyncio.sleep(0.01)
-        headers = {'Authorization': f'Bearer {token}'}
-        params = {
-            'q': nombre,
-            'type': 'artist',
-            'limit': 10,
-            'market': 'CO'
-        }
+@router.get("/api/track/{id}")
+async def track_api(id: str, token=Depends(get_spotify_token_dependency)):
+    headers = {"Authorization": f"Bearer {token}"}
+    r = requests.get(f"https://api.spotify.com/v1/tracks/{id}", headers=headers)
 
-        response = requests.get(
-            'https://api.spotify.com/v1/search',
-            headers=headers,
-            params=params,
-            timeout=10
-        )
+    if r.status_code != 200:
+        raise HTTPException(404, "Track no encontrado")
 
-        if response.status_code != 200:
-            raise HTTPException(500, "Error conectando con Spotify")
-
-        artists_data = response.json().get('artists', {}).get('items', [])
-
-        resultados = []
-        for artist in artists_data:
-            resultados.append({
-                "id": artist['id'],
-                "nombre": artist['name'],
-                "generos": artist.get('genres', [])[:3],
-                "popularidad": artist.get('popularity'),
-                "seguidores": artist.get('followers', {}).get('total', 0),
-                "imagen": artist['images'][0]['url'] if artist.get('images') else None,
-                "enlace_spotify": artist.get('external_urls', {}).get('spotify')
-            })
-
-        return {
-            "busqueda": nombre,
-            "total_resultados": len(resultados),
-            "resultados": resultados
-        }
-
-    except Exception as e:
-        logger.error(f"Error buscando artista {nombre}: {e}")
-        return {
-            "busqueda": nombre,
-            "error": "Error en la búsqueda",
-            "resultados": []
-        }
-
-
-@router.get("/track/{track_id}")
-async def obtener_info_track_spotify(
-        track_id: str,
-        token: str = Depends(get_spotify_token_dependency)
-):
-    try:
-        await asyncio.sleep(0.01)
-        headers = {'Authorization': f'Bearer {token}'}
-
-        track_response = requests.get(
-            f'https://api.spotify.com/v1/tracks/{track_id}',
-            headers=headers,
-            timeout=10
-        )
-
-        if track_response.status_code != 200:
-            raise HTTPException(404, "Track no encontrado")
-
-        track_data = track_response.json()
-
-        features_response = requests.get(
-            f'https://api.spotify.com/v1/audio-features/{track_id}',
-            headers=headers,
-            timeout=10
-        )
-
-        features = {}
-        if features_response.status_code == 200:
-            features = features_response.json()
-
-        main_artist = track_data.get('artists', [{}])[0]
-        artist_info = {
-            "id": main_artist.get('id'),
-            "nombre": main_artist.get('name')
-        } if main_artist else {}
-
-        return {
-            "track": {
-                "id": track_data.get('id'),
-                "nombre": track_data.get('name'),
-                "duracion_ms": track_data.get('duration_ms'),
-                "popularidad": track_data.get('popularity'),
-                "track_number": track_data.get('track_number'),
-                "explicito": track_data.get('explicit'),
-                "preview_url": track_data.get('preview_url'),
-                "enlace_spotify": track_data.get('external_urls', {}).get('spotify')
-            },
-            "album": {
-                "id": track_data.get('album', {}).get('id'),
-                "nombre": track_data.get('album', {}).get('name'),
-                "tipo": track_data.get('album', {}).get('album_type'),
-                "lanzamiento": track_data.get('album', {}).get('release_date'),
-                "imagen": track_data.get('album', {}).get('images', [{}])[0].get('url')
-            },
-            "artistas": [
-                {
-                    "id": artist.get('id'),
-                    "nombre": artist.get('name'),
-                    "enlace_spotify": artist.get('external_urls', {}).get('spotify')
-                } for artist in track_data.get('artists', [])
-            ],
-            "audio_features": {
-                "tempo": features.get('tempo'),
-                "energy": features.get('energy'),
-                "danceability": features.get('danceability'),
-                "valence": features.get('valence'),
-                "acousticness": features.get('acousticness'),
-                "instrumentalness": features.get('instrumentalness'),
-                "liveness": features.get('liveness'),
-                "speechiness": features.get('speechiness'),
-                "loudness": features.get('loudness'),
-                "key": features.get('key'),
-                "mode": features.get('mode'),
-                "time_signature": features.get('time_signature')
-            }
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error obteniendo track {track_id}: {e}")
-        return {
-            "error": "No se pudo obtener información del track",
-            "track_id": track_id
-        }
-
-
-# NUEVOS ENDPOINTS PARA BUSCAR POR NOMBRE
-
-@router.get("/buscar-track/{nombre}")
-async def buscar_track_spotify(
-        nombre: str,
-        token: str = Depends(get_spotify_token_dependency)
-):
-    try:
-        await asyncio.sleep(0.01)
-        headers = {'Authorization': f'Bearer {token}'}
-        params = {
-            'q': nombre,
-            'type': 'track',
-            'limit': 10,
-            'market': 'CO'
-        }
-
-        response = requests.get(
-            'https://api.spotify.com/v1/search',
-            headers=headers,
-            params=params,
-            timeout=10
-        )
-
-        if response.status_code != 200:
-            return {
-                "busqueda": nombre,
-                "error": "No se pudo conectar con Spotify",
-                "resultados": []
-            }
-
-        tracks_data = response.json().get('tracks', {}).get('items', [])
-
-        resultados = []
-        for track in tracks_data:
-            track_id = track['id']
-            features_response = requests.get(
-                f'https://api.spotify.com/v1/audio-features/{track_id}',
-                headers=headers,
-                timeout=10
-            )
-
-            features = {}
-            if features_response.status_code == 200:
-                features = features_response.json()
-
-            resultados.append({
-                "id": track_id,
-                "nombre": track['name'],
-                "artista": track['artists'][0]['name'] if track['artists'] else 'Desconocido',
-                "album": track['album']['name'],
-                "imagen": track['album']['images'][0]['url'] if track['album']['images'] else None,
-                "preview_url": track.get('preview_url'),
-                "popularidad": track.get('popularity'),
-                "audio_features": {
-                    "tempo": features.get('tempo'),
-                    "energy": features.get('energy'),
-                    "danceability": features.get('danceability'),
-                    "valence": features.get('valence'),
-                    "acousticness": features.get('acousticness')
-                } if features else None,
-                "duracion_ms": track.get('duration_ms'),
-                "explicito": track.get('explicit'),
-                "enlace_spotify": track.get('external_urls', {}).get('spotify')
-            })
-
-        return {
-            "busqueda": nombre,
-            "total_resultados": len(resultados),
-            "resultados": resultados
-        }
-
-    except Exception as e:
-        logger.error(f"Error buscando track {nombre}: {e}")
-        return {
-            "busqueda": nombre,
-            "error": str(e)[:200],
-            "resultados": []
-        }
-
-
-@router.get("/track-por-nombre/{nombre}")
-async def obtener_track_por_nombre(
-        nombre: str,
-        token: str = Depends(get_spotify_token_dependency)
-):
-    try:
-        await asyncio.sleep(0.01)
-        headers = {'Authorization': f'Bearer {token}'}
-        params = {
-            'q': f'track:{nombre}',
-            'type': 'track',
-            'limit': 1,
-            'market': 'CO'
-        }
-
-        response = requests.get(
-            'https://api.spotify.com/v1/search',
-            headers=headers,
-            params=params,
-            timeout=10
-        )
-
-        if response.status_code != 200:
-            raise HTTPException(404, f"No se encontró el track: {nombre}")
-
-        tracks = response.json().get('tracks', {}).get('items', [])
-
-        if not tracks:
-            raise HTTPException(404, f"No se encontró el track: {nombre}")
-
-        track = tracks[0]
-        track_id = track['id']
-
-        return await obtener_info_track_spotify(track_id, token)
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error obteniendo track por nombre {nombre}: {e}")
-        raise HTTPException(500, f"Error obteniendo track: {str(e)[:100]}")
+    data = r.json()
+    return {
+        "id": data["id"],
+        "nombre": data["name"],
+        "duracion": data["duration_ms"],
+        "artista": data["artists"][0]["name"],
+        "imagen": data["album"]["images"][0]["url"] if data["album"].get("images") else None
+    }

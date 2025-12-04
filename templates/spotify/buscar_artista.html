@@ -3,89 +3,45 @@
 {% block title %}Buscar Artista - Spotify{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1><i class="fas fa-search"></i> Buscar Artista en Spotify</h1>
-    <a href="/spotify/info" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Volver
-    </a>
+
+<div class="page-header mb-4">
+    <h1><i class="fas fa-user-music text-success"></i> Buscar Artista</h1>
+    <p class="text-muted">Encuentra artistas, consulta su popularidad, seguidores y géneros musicales.</p>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h2><i class="fas fa-user"></i> Buscar Artista</h2>
+<div class="card shadow-lg">
+    <div class="card-header bg-success text-white">
+        <h4 class="mb-0"><i class="fas fa-search"></i> Búsqueda de Artistas</h4>
     </div>
+
     <div class="card-body">
-        <form method="GET" action="/spotify/info/buscar-artista/html" class="mb-4">
-            <div class="input-group">
-                <input type="text" class="form-control" name="nombre"
-                       value="{{ busqueda or '' }}"
-                       placeholder="Nombre del artista..." required>
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search"></i> Buscar
-                    </button>
-                </div>
+
+        <form action="/spotify-info/buscar-artista/resultado" method="get">
+            <div class="form-group mb-3">
+                <label class="form-label">
+                    <i class="fas fa-keyboard"></i> Nombre del artista
+                </label>
+                <input
+                    type="text"
+                    name="nombre"
+                    class="form-control form-control-lg"
+                    placeholder="Ej: The Weeknd, Shakira, Drake"
+                    required
+                >
             </div>
+
+            <button class="btn btn-success btn-lg w-100">
+                <i class="fas fa-search"></i> Buscar
+            </button>
         </form>
 
-        {% if error %}
-        <div class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle"></i> {{ error }}
-        </div>
-        {% endif %}
-
-        {% if busqueda %}
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i>
-            Buscando: <strong>"{{ busqueda }}"</strong>
-            {% if resultados %}
-            • Encontrados: {{ resultados.total_resultados }} resultados
-            {% endif %}
-        </div>
-        {% endif %}
-
-        {% if resultados and resultados.resultados %}
-        <div class="list-group">
-            {% for artista in resultados.resultados %}
-            <div class="list-group-item">
-                <div style="display: flex; align-items: center; gap: 20px;">
-                    {% if artista.imagen %}
-                    <img src="{{ artista.imagen }}" alt="{{ artista.nombre }}"
-                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
-                    {% endif %}
-                    <div style="flex: 1;">
-                        <h5>{{ artista.nombre }}</h5>
-                        <div class="mb-2">
-                            {% if artista.generos %}
-                            <span class="text-muted">{{ artista.generos|join(" • ") }}</span>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <span class="badge badge-primary">{{ artista.seguidores|format_number }} seguidores</span>
-                            <span class="badge badge-success">Popularidad: {{ artista.popularidad }}/100</span>
-                        </div>
-                    </div>
-                    <div>
-                        <a href="/spotify/info/artista/{{ artista.id }}/html" class="btn btn-primary">
-                            <i class="fas fa-info-circle"></i> Ver Detalles
-                        </a>
-                        {% if artista.enlace_spotify %}
-                        <a href="{{ artista.enlace_spotify }}" target="_blank" class="btn btn-spotify">
-                            <i class="fab fa-spotify"></i> Spotify
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% elif busqueda and not error %}
-        <div class="text-center py-5">
-            <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
-            <h3>No se encontraron artistas</h3>
-            <p class="text-muted">Intenta con otro nombre o verifica la ortografía</p>
-        </div>
-        {% endif %}
     </div>
 </div>
+
+<hr class="my-5">
+
+<div class="text-center text-muted">
+    <p><i class="fas fa-info-circle"></i> La búsqueda usa la API oficial de Spotify en tiempo real.</p>
+</div>
+
 {% endblock %}

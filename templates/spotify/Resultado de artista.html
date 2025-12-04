@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados Artista{% endblock %}
+
+{% block content %}
+
+<div class="page-header mb-4">
+    <h1><i class="fas fa-users"></i> Resultados de "{{ busqueda }}"</h1>
+
+    <a href="/spotify-info/buscar-artista" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Nueva búsqueda
+    </a>
+</div>
+
+{% if total == 0 %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-circle"></i> No se encontraron artistas para "{{ busqueda }}".
+    </div>
+{% else %}
+
+<div class="row">
+
+    {% for a in resultados %}
+    <div class="col-md-4 col-lg-3 mb-4">
+        <div class="card shadow-sm h-100">
+
+            {% if a.imagen %}
+            <img src="{{ a.imagen }}" class="card-img-top" alt="{{ a.nombre }}">
+            {% else %}
+            <div class="bg-dark text-white text-center py-5">
+                <i class="fas fa-user fa-3x"></i>
+            </div>
+            {% endif %}
+
+            <div class="card-body">
+                <h5 class="card-title">{{ a.nombre }}</h5>
+
+                <p class="mb-1">
+                    <strong>Seguidores:</strong> {{ a.seguidores | int }}
+                </p>
+                <p class="mb-1">
+                    <strong>Popularidad:</strong> {{ a.popularidad }} / 100
+                </p>
+
+                <p class="text-muted small">
+                    <strong>Géneros:</strong> 
+                    {% if a.generos %}
+                        {{ a.generos | join(", ") }}
+                    {% else %}
+                        No disponible
+                    {% endif %}
+                </p>
+
+                <a href="/spotify-info/artista/{{ a.id }}" class="btn btn-primary w-100 mt-2">
+                    <i class="fas fa-eye"></i> Ver Artista
+                </a>
+            </div>
+
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endif %}
+
+{% endblock %}

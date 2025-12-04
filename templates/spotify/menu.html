@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Spotify - Menú{% endblock %}
+
+{% block content %}
+
+<div class="page-header mb-4">
+    <h1><i class="fab fa-spotify text-success"></i> Menú de Herramientas Spotify</h1>
+    <p class="text-muted">Explora artistas, canciones y análisis avanzados usando la API oficial de Spotify.</p>
+</div>
+
+<div class="row">
+
+    <!-- Buscar Artista -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-user-music"></i> Buscar Artista</h4>
+            </div>
+            <div class="card-body">
+                <p>Encuentra artistas por nombre, revisa su información, discografía, canciones populares y métricas.</p>
+                <a href="/spotify-info/buscar-artista" class="btn btn-success w-100">
+                    <i class="fas fa-search"></i> Ir a búsqueda de artista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buscar Track -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-music"></i> Buscar Canción</h4>
+            </div>
+            <div class="card-body">
+                <p>Busca cualquier canción por nombre, analiza su tempo, energía, valencia, acústica y más detalles.</p>
+                <a href="/spotify-info/buscar-track" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Ir a búsqueda de canción
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<hr class="my-5">
+
+<div class="text-center">
+    <h3 class="mb-3"><i class="fas fa-info-circle"></i> ¿Qué puedes hacer aquí?</h3>
+    <p class="text-muted">
+        Esta sección te permite obtener información en tiempo real desde Spotify: artistas, canciones,
+        análisis de audio y herramientas comparativas. Es ideal para análisis musical y proyectos de tendencias.
+    </p>
+</div>
+
+{% endblock %}
