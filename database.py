@@ -15,7 +15,7 @@ engine = create_engine(DATABASE_URL, echo=False)
 def create_db_and_tables():
     try:
         SQLModel.metadata.create_all(engine)
-        print("✅ Base de datos lista")
+        print("✅ Base de datos lista :)")
     except Exception as e:
         print(f"⚠  Error creando tablas: {e}")
 
