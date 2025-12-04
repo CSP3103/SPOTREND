@@ -1,11 +1,13 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
-import uuid
+import shortuuid
+
+
 
 
 class Cancion(SQLModel, table=True):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    id: str = Field(default_factory=lambda: shortuuid.uuid()[:10], primary_key=True)
     nombre: str
     artista: str
     tempo: float
