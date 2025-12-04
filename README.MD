@@ -45,22 +45,37 @@ Tecnología	Uso
 
 
 📁 services/
+
  ├── analisis_service.py
+
  └── spotify_service.py
 
 📁 templates/
+
  ├── analisis/
+
  ├── artistas/
+
  ├── benchmarks/
+
  ├── canciones/
+
  ├── comparacion/
+
  ├── comparacion_spotify/
+
  ├── eliminados/
+
  ├── recomendaciones/
+
  ├── spotify/
+
  ├── base.html
+
  ├── dashboard.html
+
  ├── error.html
+
  └── index.html
 
 .gitignore  
