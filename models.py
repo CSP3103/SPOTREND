@@ -33,6 +33,7 @@ class Artista(SQLModel, table=True):
     deleted_at: Optional[datetime] = None
 
 
+
 class Benchmark(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     pais: str
