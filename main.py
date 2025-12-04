@@ -3,7 +3,7 @@ from database import create_db_and_tables
 from routers import (
     cancion, artista, benchmark, analisis,
     analisis, eliminados, comparar_spotify,
-    spotify_info, recomendaciones, dashboard
+    spotify_info, recomendaciones, dashboard,comparacion_local
 )
 import logging
 
@@ -36,6 +36,7 @@ app.include_router(comparar_spotify.router)
 app.include_router(spotify_info.router)
 app.include_router(recomendaciones.router)
 app.include_router(dashboard.router)
+app.include_router(comparacion_local.router)
 
 @app.get("/")
 def home():

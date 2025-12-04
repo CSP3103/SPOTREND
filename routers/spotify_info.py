@@ -82,42 +82,52 @@ async def obtener_info_artista_spotify(
                     'imagen': artist['images'][0]['url'] if artist.get('images') else None
                 })
 
+        # ESTADÍSTICAS MEJORADAS
         audio_stats = {
             'tempo_promedio': 0,
             'energy_promedio': 0,
             'danceability_promedio': 0,
             'valence_promedio': 0,
-            'acousticness_promedio': 0
+            'acousticness_promedio': 0,
+            'total_tracks_con_features': 0
         }
 
         if top_tracks:
-            tempo_total = energy_total = dance_total = valence_total = acoustic_total = 0
-            tracks_con_features = 0
+            # Obtener IDs de tracks
+            track_ids = [track['id'] for track in top_tracks if track.get('id')]
 
-            for track in top_tracks[:3]:
+            if track_ids:
+                # Consultar múltiples tracks a la vez (más eficiente)
                 features_response = requests.get(
-                    f'https://api.spotify.com/v1/audio-features/{track["id"]}',
+                    f'https://api.spotify.com/v1/audio-features?ids={",".join(track_ids[:5])}',
                     headers=headers,
                     timeout=10
                 )
 
                 if features_response.status_code == 200:
-                    features = features_response.json()
-                    tempo_total += features.get('tempo', 0)
-                    energy_total += features.get('energy', 0)
-                    dance_total += features.get('danceability', 0)
-                    valence_total += features.get('valence', 0)
-                    acoustic_total += features.get('acousticness', 0)
-                    tracks_con_features += 1
+                    features_list = features_response.json().get('audio_features', [])
 
-            if tracks_con_features > 0:
-                audio_stats = {
-                    'tempo_promedio': round(tempo_total / tracks_con_features, 1),
-                    'energy_promedio': round(energy_total / tracks_con_features, 3),
-                    'danceability_promedio': round(dance_total / tracks_con_features, 3),
-                    'valence_promedio': round(valence_total / tracks_con_features, 3),
-                    'acousticness_promedio': round(acoustic_total / tracks_con_features, 3)
-                }
+                    tempo_total = energy_total = dance_total = valence_total = acoustic_total = 0
+                    tracks_con_features = 0
+
+                    for features in features_list:
+                        if features:  # Spotify a veces devuelve null
+                            tempo_total += features.get('tempo', 0)
+                            energy_total += features.get('energy', 0)
+                            dance_total += features.get('danceability', 0)
+                            valence_total += features.get('valence', 0)
+                            acoustic_total += features.get('acousticness', 0)
+                            tracks_con_features += 1
+
+                    if tracks_con_features > 0:
+                        audio_stats = {
+                            'tempo_promedio': round(tempo_total / tracks_con_features, 1),
+                            'energy_promedio': round(energy_total / tracks_con_features, 3),
+                            'danceability_promedio': round(dance_total / tracks_con_features, 3),
+                            'valence_promedio': round(valence_total / tracks_con_features, 3),
+                            'acousticness_promedio': round(acoustic_total / tracks_con_features, 3),
+                            'total_tracks_con_features': tracks_con_features
+                        }
 
         return {
             "artista": {
@@ -299,3 +309,126 @@ async def obtener_info_track_spotify(
             "error": "No se pudo obtener información del track",
             "track_id": track_id
         }
+
+
+# NUEVOS ENDPOINTS PARA BUSCAR POR NOMBRE
+
+@router.get("/buscar-track/{nombre}")
+async def buscar_track_spotify(
+        nombre: str,
+        token: str = Depends(get_spotify_token_dependency)
+):
+    try:
+        await asyncio.sleep(0.01)
+        headers = {'Authorization': f'Bearer {token}'}
+        params = {
+            'q': nombre,
+            'type': 'track',
+            'limit': 10,
+            'market': 'CO'
+        }
+
+        response = requests.get(
+            'https://api.spotify.com/v1/search',
+            headers=headers,
+            params=params,
+            timeout=10
+        )
+
+        if response.status_code != 200:
+            return {
+                "busqueda": nombre,
+                "error": "No se pudo conectar con Spotify",
+                "resultados": []
+            }
+
+        tracks_data = response.json().get('tracks', {}).get('items', [])
+
+        resultados = []
+        for track in tracks_data:
+            track_id = track['id']
+            features_response = requests.get(
+                f'https://api.spotify.com/v1/audio-features/{track_id}',
+                headers=headers,
+                timeout=10
+            )
+
+            features = {}
+            if features_response.status_code == 200:
+                features = features_response.json()
+
+            resultados.append({
+                "id": track_id,
+                "nombre": track['name'],
+                "artista": track['artists'][0]['name'] if track['artists'] else 'Desconocido',
+                "album": track['album']['name'],
+                "imagen": track['album']['images'][0]['url'] if track['album']['images'] else None,
+                "preview_url": track.get('preview_url'),
+                "popularidad": track.get('popularity'),
+                "audio_features": {
+                    "tempo": features.get('tempo'),
+                    "energy": features.get('energy'),
+                    "danceability": features.get('danceability'),
+                    "valence": features.get('valence'),
+                    "acousticness": features.get('acousticness')
+                } if features else None,
+                "duracion_ms": track.get('duration_ms'),
+                "explicito": track.get('explicit'),
+                "enlace_spotify": track.get('external_urls', {}).get('spotify')
+            })
+
+        return {
+            "busqueda": nombre,
+            "total_resultados": len(resultados),
+            "resultados": resultados
+        }
+
+    except Exception as e:
+        logger.error(f"Error buscando track {nombre}: {e}")
+        return {
+            "busqueda": nombre,
+            "error": str(e)[:200],
+            "resultados": []
+        }
+
+
+@router.get("/track-por-nombre/{nombre}")
+async def obtener_track_por_nombre(
+        nombre: str,
+        token: str = Depends(get_spotify_token_dependency)
+):
+    try:
+        await asyncio.sleep(0.01)
+        headers = {'Authorization': f'Bearer {token}'}
+        params = {
+            'q': f'track:{nombre}',
+            'type': 'track',
+            'limit': 1,
+            'market': 'CO'
+        }
+
+        response = requests.get(
+            'https://api.spotify.com/v1/search',
+            headers=headers,
+            params=params,
+            timeout=10
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(404, f"No se encontró el track: {nombre}")
+
+        tracks = response.json().get('tracks', {}).get('items', [])
+
+        if not tracks:
+            raise HTTPException(404, f"No se encontró el track: {nombre}")
+
+        track = tracks[0]
+        track_id = track['id']
+
+        return await obtener_info_track_spotify(track_id, token)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error obteniendo track por nombre {nombre}: {e}")
+        raise HTTPException(500, f"Error obteniendo track: {str(e)[:100]}")
