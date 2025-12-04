@@ -430,21 +430,24 @@ async def eliminar_benchmark(id: int, session: Session = Depends(get_session)):
 
 @router.get("/{id}/restaurar")
 async def restaurar_benchmark(id: int, session: Session = Depends(get_session)):
-    """API: Restaurar benchmark (JSON) - ORIGINAL"""
+    """API: Restaurar benchmark con redirección"""
     try:
         await asyncio.sleep(0.01)
         benchmark = session.get(Benchmark, id)
+
         if not benchmark:
             raise HTTPException(404, "Benchmark no encontrado")
 
         if not benchmark.deleted_at:
-            return {"message": "Benchmark no estaba eliminado", "ok": True}
+            # Ya restaurado → redirige igual
+            return RedirectResponse("/eliminados/benchmarks", status_code=303)
 
         benchmark.deleted_at = None
-        await asyncio.sleep(0.01)
         session.add(benchmark)
         session.commit()
-        return {"message": "Benchmark restaurado exitosamente", "ok": True}
+
+        # ✔ Redirige al listado de eliminados
+        return RedirectResponse("/eliminados/benchmarks", status_code=303)
 
     except HTTPException:
         raise
