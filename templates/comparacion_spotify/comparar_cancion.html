@@ -280,22 +280,11 @@
     </div>
     <div class="card-body">
         <div class="row">
-            <div class="col-md-4">
-                <a href="/recomendaciones/cancion/{{ comparacion.cancion_local.id }}" 
-                   class="btn btn-outline-primary btn-block">
-                    <i class="fas fa-star"></i> Buscar Similares Locales
-                </a>
-            </div>
+
             <div class="col-md-4">
                 <a href="/analisis-v2/cancion/{{ comparacion.cancion_local.id }}" 
                    class="btn btn-outline-info btn-block">
                     <i class="fas fa-chart-bar"></i> Analizar con Benchmarks
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="/spotify/data/search?query={{ comparacion.cancion_local.nombre }} {{ comparacion.cancion_local.artista }}" 
-                   class="btn btn-outline-warning btn-block">
-                    <i class="fas fa-search"></i> Búsqueda Avanzada en Spotify
                 </a>
             </div>
         </div>
