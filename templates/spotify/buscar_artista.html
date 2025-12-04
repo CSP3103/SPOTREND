@@ -1,28 +1,29 @@
 {% extends "base.html" %}
-{% block title %}Resultados Artista{% endblock %}
+{% block title %}Buscar Artista{% endblock %}
 
 {% block content %}
 
-<h1>Resultados para "{{ busqueda }}"</h1>
-<a href="/spotify-info/buscar-artista" class="btn btn-secondary mb-3">Nueva búsqueda</a>
+<h1><i class="fas fa-user"></i> Buscar Artista</h1>
+<a href="/spotify-info" class="btn btn-secondary mb-3">Volver</a>
 
-<div class="list-group">
-    {% for a in resultados %}
-    <a href="/spotify-info/artista/{{ a.id }}" class="list-group-item list-group-item-action">
-        <div class="d-flex align-items-center gap-3">
-            {% if a.imagen %}
-            <img src="{{ a.imagen }}" style="width:60px;height:60px;border-radius:8px;">
-            {% endif %}
-            <div>
-                <h5>{{ a.nombre }}</h5>
-                <p class="text-muted">
-                    Popularidad: {{ a.popularidad }} |
-                    Seguidores: {{ a.seguidores }}
-                </p>
-            </div>
-        </div>
-    </a>
-    {% endfor %}
+<div class="card shadow p-4">
+
+    <form action="/spotify-info/buscar-artista/resultado" method="get">
+        <label class="form-label">Nombre del artista</label>
+
+        <input
+            type="text"
+            name="nombre"
+            class="form-control"
+            placeholder="Ej: Shakira, Feid, Drake"
+            required
+        >
+
+        <button class="btn btn-success w-100 mt-3">
+            Buscar
+        </button>
+    </form>
+
 </div>
 
 {% endblock %}
